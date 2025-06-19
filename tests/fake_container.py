@@ -6,16 +6,12 @@ from src.seaapi.adapters.unit_of_works import (
     GroupSqlAlchemyUnitOfWork,
     TokenSqlAlchemyUnitOfWork,
     PermissionSqlAlchemyUnitOfWork,
-    StoreSqlAlchemyUnitOfWork,
-    SectionSqlAlchemyUnitOfWork,
 )
 from src.seaapi.adapters.use_cases import (
     UserService,
     GroupService,
     PermissionService,
     TokenService,
-    StoreService,
-    SectionService,
 )
 
 from src.seaapi.adapters.services.notification.fake import (
@@ -68,15 +64,6 @@ class Container(containers.DeclarativeContainer):
         TokenSqlAlchemyUnitOfWork,
         session_factory=DEFAULT_SESSION_FACTORY,
     )
-    store_uow = providers.Factory(
-        StoreService,
-        session_factory=DEFAULT_SESSION_FACTORY,
-    )
-
-    section_uow = providers.Factory(
-        SectionSqlAlchemyUnitOfWork,
-        session_factory=DEFAULT_SESSION_FACTORY,
-    )
 
     notification_service = providers.Factory(
         FakeNotificationService
@@ -110,17 +97,4 @@ class Container(containers.DeclarativeContainer):
 
     permission_service = providers.Factory(
         PermissionService, uow=permission_uow
-    )
-
-    store_service = providers.Factory(
-        StoreService,
-        uow=store_uow,
-        storage_service=storage_service,
-    )
-
-    section_service = providers.Factory(
-        StoreService,
-        uow=section_uow,
-        store_uow=store_uow,
-        storage_service=storage_service,
     )

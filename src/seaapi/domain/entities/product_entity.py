@@ -1,12 +1,9 @@
 from time import time
-from dataclasses import dataclass, field
-from typing import Optional, List
+from dataclasses import dataclass
+from typing import Optional
 
 from src.seaapi.domain.entities.base import (
     BaseEntity,
-)
-from src.seaapi.domain.entities.product_child_entity import (
-    ProductChildEntity,
 )
 from src.seaapi.domain.ports.services.storage import (
     StorageServiceInterface,
@@ -21,15 +18,11 @@ from src.seaapi.domain.dtos.mics import UploadedFile
 @dataclass
 class ProductEntity(BaseEntity):
     id: int
-    section_id: int
 
     name: str
     description: Optional[str]
 
     photo: Optional[str]
-    children: List[ProductChildEntity] = field(
-        default_factory=list
-    )
 
     class Meta:
         verbose = "Produto da Loja"
@@ -38,16 +31,12 @@ class ProductEntity(BaseEntity):
         search = ["name", "description"]
         filters = [
             "id",
-            "section_id",
             "name",
             "description",
         ]
         composite_field = None
         active_field = None
         joins = []
-
-    def get_child(self, id: int) -> ProductChildEntity:
-        return find(self.children, lambda x: x.id == id)
 
     def upload_photo(
         self,
@@ -73,41 +62,10 @@ class ProductEntity(BaseEntity):
             print(e)
             raise CannotStorageFileException()
 
-    @property
-    def max_duration(self):
-        if len(self.children) == 0:
-            return 0
-
-        return max(
-            self.children, key=lambda x: x.duration
-        ).duration
-
-    @property
-    def min_duration(self):
-        if len(self.children) == 0:
-            return 0
-
-        return min(
-            self.children, key=lambda x: x.duration
-        ).duration
-
-    @property
-    def start_price(self):
-        if len(self.children) == 0:
-            return 0
-
-        return min(
-            self.children, key=lambda x: x.min_price
-        ).min_price
-
     def to_beautiful_dict(
         self, storage_service: StorageServiceInterface
     ):
         product_dict = self.to_dict()
-
-        product_dict["start_price"] = self.start_price
-        product_dict["max_duration"] = self.max_duration
-        product_dict["min_duration"] = self.min_duration
 
         if self.photo is not None:
             product_dict["photo"] = storage_service.get(
@@ -118,7 +76,6 @@ class ProductEntity(BaseEntity):
 
 
 def product_model_factory(
-    section_id: int,
     name: str,
     description: str = None,
     photo: str = None,
@@ -128,6 +85,5 @@ def product_model_factory(
         id=id,
         name=name,
         description=description,
-        photo=photo,
-        section_id=section_id,
+        photo=photo
     )

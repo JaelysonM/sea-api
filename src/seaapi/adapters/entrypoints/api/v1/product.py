@@ -25,9 +25,6 @@ from src.seaapi.domain.dtos.products import (
     ProductPaginationData,
     ProductPaginationParams,
     ProductUpdateInputDto,
-    ProductChildCreateInputDto,
-    ProductScheduleInputDto,
-    ProductScheduleOutputDto,
 )
 from src.seaapi.adapters.entrypoints.api.shared.permissions import (
     PermissionsDependency,
@@ -81,8 +78,6 @@ def create(
     photo: Optional[UploadFile],
     name: str = Form(),
     description: Optional[str] = Form(None),
-    store_id: int = Form(),
-    section_id: int = Form(),
     product_service: ProductServiceInterface = Depends(
         Provide[Container.product_service]
     ),
@@ -90,10 +85,8 @@ def create(
     return product_service.create(
         ProductCreateInputDto(
             name=name,
-            section_id=section_id,
             description=description,
             photo=convert_upload_file_to_domain(photo),
-            store_id=store_id,
         ),
         scheduler=background_tasks,
     )
@@ -176,7 +169,6 @@ def edit_product(
     background_tasks: BackgroundTasks,
     name: Optional[str] = Form(None),
     description: Optional[str] = Form(None),
-    section_id: Optional[int] = Form(None),
     photo: Optional[UploadFile] = Depends(),
     product_service: ProductServiceInterface = Depends(
         Provide[Container.product_service]
@@ -189,7 +181,6 @@ def edit_product(
             name=name,
             description=description,
             photo=convert_upload_file_to_domain(photo),
-            section_id=section_id,
         ),
         scheduler=background_tasks,
     )
@@ -227,71 +218,3 @@ def delete_product(
     ),
 ):
     return product_service.delete_product(id)
-
-
-@router.post(
-    "{id}/child",
-    response_model=SuccessResponse,
-    status_code=201,
-    dependencies=[
-        Depends(
-            PermissionsDependency(
-                And(
-                    [
-                        IsAuthenticated(),
-                        Or(
-                            [
-                                IsAdministrator(),
-                                HasObjectCreatePermission(
-                                    resource="product"
-                                ),
-                            ]
-                        ),
-                    ]
-                )
-            )
-        ),
-        Depends(auth_scheme),
-    ],
-)
-@inject
-def create_child(
-    id: int,
-    product_child: ProductChildCreateInputDto,
-    product_service: ProductServiceInterface = Depends(
-        Provide[Container.product_service]
-    ),
-):
-    return product_service.create_child(
-        id=id, product_child=product_child
-    )
-
-
-@router.get(
-    "/{id}/schedule",
-    response_model=ProductScheduleOutputDto,
-    status_code=200,
-    dependencies=[
-        Depends(
-            PermissionsDependency(
-                And(
-                    [
-                        IsAuthenticated(),
-                    ]
-                )
-            )
-        ),
-        Depends(auth_scheme),
-    ],
-)
-@inject
-def get_product_schedule(
-    id: int,
-    product_schedule: ProductScheduleInputDto = Depends(),
-    product_service: ProductServiceInterface = Depends(
-        Provide[Container.product_service]
-    ),
-):
-    return product_service.get_product_schedule(
-        id_=id, product_schedule=product_schedule
-    )

@@ -4,8 +4,6 @@ from src.seaapi.adapters.entrypoints.api.v1 import (
     user,
     group,
     permission,
-    store,
-    section,
     product,
 )
 
@@ -32,21 +30,9 @@ api_router.include_router(
 )
 
 
-api_router.include_router(
-    section.router,
-    prefix="/stores/sections",
-    tags=["Store and Mics"],
-)
-
 
 api_router.include_router(
     product.router,
-    prefix="/stores/products",
-    tags=["Store and Mics"],
-)
-
-api_router.include_router(
-    store.router,
-    prefix="/stores",
-    tags=["Store and Mics"],
+    prefix="/products",
+    tags=["Products"],
 )

@@ -7,17 +7,13 @@ from src.seaapi.adapters.unit_of_works import (
     GroupSqlAlchemyUnitOfWork,
     TokenSqlAlchemyUnitOfWork,
     PermissionSqlAlchemyUnitOfWork,
-    StoreSqlAlchemyUnitOfWork,
-    SectionSqlAlchemyUnitOfWork,
     ProductSqlAlchemyUnitOfWork,
 )
 from src.seaapi.adapters.use_cases import (
     UserService,
     GroupService,
     PermissionService,
-    StoreService,
     TokenService,
-    SectionService,
     ProductService,
 )
 from src.seaapi.config.settings import settings
@@ -73,16 +69,6 @@ class Container(containers.DeclarativeContainer):
         session_factory=DEFAULT_SESSION_FACTORY,
     )
 
-    store_uow = providers.Factory(
-        StoreSqlAlchemyUnitOfWork,
-        session_factory=DEFAULT_SESSION_FACTORY,
-    )
-
-    section_uow = providers.Factory(
-        SectionSqlAlchemyUnitOfWork,
-        session_factory=DEFAULT_SESSION_FACTORY,
-    )
-
     product_uow = providers.Factory(
         ProductSqlAlchemyUnitOfWork,
         session_factory=DEFAULT_SESSION_FACTORY,
@@ -125,23 +111,8 @@ class Container(containers.DeclarativeContainer):
         PermissionService, uow=permission_uow
     )
 
-    store_service = providers.Factory(
-        StoreService,
-        uow=store_uow,
-        storage_service=storage_service,
-    )
-
-    section_service = providers.Factory(
-        SectionService,
-        uow=section_uow,
-        store_uow=store_uow,
-        storage_service=storage_service,
-    )
-
     product_service = providers.Factory(
         ProductService,
         uow=product_uow,
-        store_uow=store_uow,
-        section_uow=section_uow,
         storage_service=storage_service,
     )

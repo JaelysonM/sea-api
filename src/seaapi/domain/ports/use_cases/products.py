@@ -7,10 +7,7 @@ from src.seaapi.domain.entities import (
 from src.seaapi.domain.dtos.products import (
     ProductCreateInputDto,
     ProductUpdateInputDto,
-    ProductOutputDto,
-    ProductChildCreateInputDto,
-    ProductScheduleInputDto,
-    ProductScheduleOutputDto,
+    ProductOutputDto
 )
 from src.seaapi.domain.dtos.mics import (
     SuccessResponse,
@@ -24,22 +21,6 @@ class ProductServiceInterface(abc.ABC):
         self, product: ProductCreateInputDto, scheduler
     ) -> SuccessResponse:
         return self._create(product, scheduler)
-
-    def create_child(
-        self,
-        id_: int,
-        product_child: ProductChildCreateInputDto,
-    ) -> SuccessResponse:
-        return self._create_child(id_, product_child)
-
-    def get_product_schedule(
-        self,
-        id_: int,
-        product_schedule: ProductScheduleInputDto,
-    ) -> ProductScheduleOutputDto:
-        return self._get_product_schedule(
-            id_, product_schedule
-        )
 
     def get_all(
         self,
@@ -73,15 +54,6 @@ class ProductServiceInterface(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def _create_child(
-        self,
-        id: int,
-        product_child: ProductChildCreateInputDto,
-        scheduler,
-    ) -> SuccessResponse:
-        raise NotImplementedError
-
-    @abc.abstractmethod
     def _get_product(
         self, id_: int, entity: bool = True
     ) -> Union[ProductEntity, ProductOutputDto]:
@@ -108,12 +80,4 @@ class ProductServiceInterface(abc.ABC):
         self,
         id_: int,
     ) -> SuccessResponse:
-        raise NotImplementedError
-
-    @abc.abstractmethod
-    def _get_product_schedule(
-        self,
-        id_: int,
-        product_schedule: ProductScheduleInputDto,
-    ) -> ProductScheduleOutputDto:
         raise NotImplementedError

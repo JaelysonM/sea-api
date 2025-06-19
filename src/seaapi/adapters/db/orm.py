@@ -2,7 +2,6 @@ from sqlalchemy import MetaData
 from sqlalchemy.orm import registry
 from src.seaapi.adapters.db.models import (
     UsersTables,
-    StoresTables,
     GeneralTables,
     ProductsTables,
     TablesRegistration,
@@ -15,7 +14,6 @@ mapper_registry = registry(metadata=metadata)
 
 general_tables = GeneralTables(mapper_registry)
 users_tables = UsersTables(mapper_registry)
-stores_tables = StoresTables(mapper_registry)
 products_tables = ProductsTables(mapper_registry)
 
 
@@ -27,12 +25,10 @@ def start_mappers(register=True, from_test=False):
     if register:
         general_tables.register()
         users_tables.register()
-        stores_tables.register()
         products_tables.register()
     else:
         general_tables.create()
         users_tables.create()
-        stores_tables.create()
         products_tables.create()
 
 
