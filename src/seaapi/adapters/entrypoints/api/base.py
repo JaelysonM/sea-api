@@ -30,7 +30,6 @@ api_router.include_router(
 )
 
 
-
 api_router.include_router(
     product.router,
     prefix="/products",

@@ -7,7 +7,7 @@ from src.seaapi.domain.entities import (
 from src.seaapi.domain.dtos.products import (
     ProductCreateInputDto,
     ProductUpdateInputDto,
-    ProductOutputDto
+    ProductOutputDto,
 )
 from src.seaapi.domain.dtos.mics import (
     SuccessResponse,

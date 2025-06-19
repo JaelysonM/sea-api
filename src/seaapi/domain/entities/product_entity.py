@@ -11,7 +11,6 @@ from src.seaapi.domain.ports.services.storage import (
 from src.seaapi.domain.ports.shared.exceptions import (
     CannotStorageFileException,
 )
-from src.seaapi.domain.shared.arrays import find
 from src.seaapi.domain.dtos.mics import UploadedFile
 
 
@@ -85,5 +84,5 @@ def product_model_factory(
         id=id,
         name=name,
         description=description,
-        photo=photo
+        photo=photo,
     )

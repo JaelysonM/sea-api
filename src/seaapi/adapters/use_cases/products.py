@@ -8,8 +8,6 @@ from src.seaapi.domain.dtos.products import (
     ProductCreateInputDto,
     ProductOutputDto,
     ProductUpdateInputDto,
-    ProductScheduleOutputDto,
-    ProductScheduleInputDto,
 )
 from src.seaapi.domain.dtos.mics import (
     SuccessResponse,

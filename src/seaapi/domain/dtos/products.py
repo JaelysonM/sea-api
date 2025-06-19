@@ -1,4 +1,3 @@
-from datetime import date, time
 from typing import List, Optional
 from pydantic import BaseModel
 from src.seaapi.domain.dtos.mics import (
@@ -7,17 +6,6 @@ from src.seaapi.domain.dtos.mics import (
     PaginationData,
     UploadedFile,
 )
-
-
-class ProductScheduleTime(BaseModel):
-    price: float
-    time: str
-
-
-class ProductScheduleOutputDto(BaseModel):
-    best_time: Optional[time]
-    closed: bool
-    available_times: List[ProductScheduleTime]
 
 
 class ProductCreateInputDto(BaseModel):
