@@ -6,11 +6,11 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from src.siasdapi.adapters.db.orm import metadata
-from src.siasdapi.adapters.entrypoints.application import (
+from src.seaapi.adapters.db.orm import metadata
+from src.seaapi.adapters.entrypoints.application import (
     app as original_app,
 )
-from src.siasdapi.config.settings import settings
+from src.seaapi.config.settings import settings
 from tests.fake_container import Container
 from tests.utils.auth import (
     authentication_token_from_superuser,

@@ -1,4 +1,4 @@
-# siasd-api
+# sea-api
 
 Esta documentação descreve a arquitetura e os detalhes de implementação de um projeto Python usando o framework FastAPI, seguindo o padrão de arquitetura Hexagonal (também conhecido como Ports and Adapters).
 

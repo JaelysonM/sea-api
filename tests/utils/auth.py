@@ -8,10 +8,10 @@ from fastapi import (
 from fastapi.encoders import jsonable_encoder
 from fastapi.testclient import TestClient
 
-from src.siasdapi.domain.ports.use_cases.users import (
+from src.seaapi.domain.ports.use_cases.users import (
     UserServiceInterface,
 )
-from src.siasdapi.config.settings import settings
+from src.seaapi.config.settings import settings
 from tests.fake_container import Container
 
 

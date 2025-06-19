@@ -1,7 +1,7 @@
 from dependency_injector import containers, providers
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
-from src.siasdapi.adapters.unit_of_works import (
+from src.seaapi.adapters.unit_of_works import (
     UserSqlAlchemyUnitOfWork,
     GroupSqlAlchemyUnitOfWork,
     TokenSqlAlchemyUnitOfWork,
@@ -9,7 +9,7 @@ from src.siasdapi.adapters.unit_of_works import (
     StoreSqlAlchemyUnitOfWork,
     SectionSqlAlchemyUnitOfWork,
 )
-from src.siasdapi.adapters.use_cases import (
+from src.seaapi.adapters.use_cases import (
     UserService,
     GroupService,
     PermissionService,
@@ -18,13 +18,13 @@ from src.siasdapi.adapters.use_cases import (
     SectionService,
 )
 
-from src.siasdapi.adapters.services.notification.fake import (
+from src.seaapi.adapters.services.notification.fake import (
     FakeNotificationService,
 )
-from src.siasdapi.adapters.services.pdf.jinja import (
+from src.seaapi.adapters.services.pdf.jinja import (
     JinjaPDFGenerator,
 )
-from src.siasdapi.adapters.services.storage.fake import (
+from src.seaapi.adapters.services.storage.fake import (
     FakeStorageService,
 )
 
@@ -32,7 +32,7 @@ from src.siasdapi.adapters.services.storage.fake import (
 class Container(containers.DeclarativeContainer):
     wiring_config = containers.WiringConfiguration(
         packages=[
-            "src.siasdapi.adapters.entrypoints.api.v1",
+            "src.seaapi.adapters.entrypoints.api.v1",
             "tests",
         ]
     )

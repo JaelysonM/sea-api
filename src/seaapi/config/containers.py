@@ -1,0 +1,147 @@
+from dependency_injector import containers, providers
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, scoped_session
+from src.seaapi import config
+from src.seaapi.adapters.unit_of_works import (
+    UserSqlAlchemyUnitOfWork,
+    GroupSqlAlchemyUnitOfWork,
+    TokenSqlAlchemyUnitOfWork,
+    PermissionSqlAlchemyUnitOfWork,
+    StoreSqlAlchemyUnitOfWork,
+    SectionSqlAlchemyUnitOfWork,
+    ProductSqlAlchemyUnitOfWork,
+)
+from src.seaapi.adapters.use_cases import (
+    UserService,
+    GroupService,
+    PermissionService,
+    StoreService,
+    TokenService,
+    SectionService,
+    ProductService,
+)
+from src.seaapi.config.settings import settings
+
+from src.seaapi.adapters.services.notification.email import (
+    EmailNotificationService,
+)
+
+from src.seaapi.adapters.services.pdf.jinja import (
+    JinjaPDFGenerator,
+)
+
+
+from src.seaapi.adapters.services.storage import (
+    S3StorageService,
+    MinIOStorageService,
+)
+
+ENGINE = create_engine(config.get_database_uri())
+
+
+class Container(containers.DeclarativeContainer):
+    wiring_config = containers.WiringConfiguration(
+        packages=[
+            "..adapters.entrypoints.api.v1",
+        ]
+    )
+
+    def DEFAULT_SESSION_FACTORY():
+        return scoped_session(
+            sessionmaker(
+                bind=ENGINE, expire_on_commit=False
+            )
+        )
+
+    user_uow = providers.Factory(
+        UserSqlAlchemyUnitOfWork,
+        session_factory=DEFAULT_SESSION_FACTORY,
+    )
+
+    group_uow = providers.Factory(
+        GroupSqlAlchemyUnitOfWork,
+        session_factory=DEFAULT_SESSION_FACTORY,
+    )
+
+    permission_uow = providers.Factory(
+        PermissionSqlAlchemyUnitOfWork,
+        session_factory=DEFAULT_SESSION_FACTORY,
+    )
+
+    token_uow = providers.Factory(
+        TokenSqlAlchemyUnitOfWork,
+        session_factory=DEFAULT_SESSION_FACTORY,
+    )
+
+    store_uow = providers.Factory(
+        StoreSqlAlchemyUnitOfWork,
+        session_factory=DEFAULT_SESSION_FACTORY,
+    )
+
+    section_uow = providers.Factory(
+        SectionSqlAlchemyUnitOfWork,
+        session_factory=DEFAULT_SESSION_FACTORY,
+    )
+
+    product_uow = providers.Factory(
+        ProductSqlAlchemyUnitOfWork,
+        session_factory=DEFAULT_SESSION_FACTORY,
+    )
+
+    notification_service = providers.Factory(
+        EmailNotificationService,
+    )
+
+    pdf_service = providers.Factory(
+        JinjaPDFGenerator,
+    )
+
+    storage_service = providers.Singleton(
+        S3StorageService
+        if settings.STORAGE_PROVIDER == "s3"
+        else MinIOStorageService,
+    )
+
+    token_service = providers.Factory(
+        TokenService,
+        uow=token_uow,
+    )
+
+    user_service = providers.Factory(
+        UserService,
+        uow=user_uow,
+        group_uow=group_uow,
+        token_service=token_service,
+        notification_service=notification_service,
+    )
+
+    group_service = providers.Factory(
+        GroupService,
+        uow=group_uow,
+        permission_uow=permission_uow,
+    )
+
+    permission_service = providers.Factory(
+        PermissionService, uow=permission_uow
+    )
+
+    store_service = providers.Factory(
+        StoreService,
+        uow=store_uow,
+        storage_service=storage_service,
+    )
+
+    section_service = providers.Factory(
+        SectionService,
+        uow=section_uow,
+        store_uow=store_uow,
+        storage_service=storage_service,
+    )
+
+    product_service = providers.Factory(
+        ProductService,
+        uow=product_uow,
+        store_uow=store_uow,
+        section_uow=section_uow,
+        storage_service=storage_service,
+    )

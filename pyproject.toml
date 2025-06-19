@@ -1,5 +1,5 @@
 [project]
-name = "siasd-api"
+name = "sea-api"
 authors = [{name = "Jaelyson Martins", email = "jaelysonmartins@gmail.com"}]
 readme = "README.md"
 license = {file = "LICENSE.md"}

@@ -27,7 +27,7 @@ services:
       - fans-network
   api:
     build: .
-    container_name: siasd-api
+    container_name: sea-api
     env_file: .env
     networks:
       - fans-network

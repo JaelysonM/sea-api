@@ -87,4 +87,4 @@ RUN pyppeteer-install
 EXPOSE 5000
 
 ENTRYPOINT ["/usr/app/entrypoint.sh"]
-CMD ["python3", "-m", "uvicorn", "src.siasdapi.adapters.entrypoints.application:app", "--reload", "--host", "0.0.0.0", "--port", "5000"]
+CMD ["python3", "-m", "uvicorn", "src.seaapi.adapters.entrypoints.application:app", "--reload", "--host", "0.0.0.0", "--port", "5000"]

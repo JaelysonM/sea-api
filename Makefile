@@ -30,13 +30,13 @@ lint:
 	pipenv run black src tests --check --diff --config pyproject.toml
 
 run:
-	pipenv run uvicorn src.siasdapi.adapters.entrypoints.application:app --host 0.0.0.0 --port 8000 --reload
+	pipenv run uvicorn src.seaapi.adapters.entrypoints.application:app --host 0.0.0.0 --port 8000 --reload
 
 migrations:
-	pipenv run alembic -c src/siasdapi/adapters/db/alembic.ini revision --autogenerate
+	pipenv run alembic -c src/seaapi/adapters/db/alembic.ini revision --autogenerate
 
 migrate:
-	pipenv run alembic -c src/siasdapi/adapters/db/alembic.ini upgrade head
+	pipenv run alembic -c src/seaapi/adapters/db/alembic.ini upgrade head
 
 test:
 	TEST_RUN="TRUE" pipenv run pytest -svvv --order-group-scope=module  -m "not slow" tests
