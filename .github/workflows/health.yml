@@ -1,0 +1,78 @@
+name: Health-Check CD Workflow
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - master
+
+  push:
+    branches:
+      - master
+      - develop
+  workflow_dispatch:
+
+
+jobs:
+  health:
+    name: Health Check
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: github-actions
+        ports:
+          - 5432:5432
+        options:
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      DB_HOST: localhost
+      DB_USER: postgres
+      DB_NAME: github-actions
+      DB_PASS: postgres
+      FAN_MANAGER_EMAIL: ${{ secrets.FAN_MANAGER_EMAIL }}
+      FAN_MANAGER_PASSWORD: ${{ secrets.SUPERUSER_PASSWORD }}
+      SUPERUSER_EMAIL: ${{ secrets.SUPERUSER_EMAIL }}
+      SUPERUSER_PASSWORD: ${{ secrets.SUPERUSER_PASSWORD }}
+      WEB_APP_BASE_URL: ${{ secrets.WEB_APP_BASE_URL }}
+      CI: false
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Cache dependency 💾
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      - name: Setup python environment ⚙️
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.8"
+
+      - name: Check Python version 🐍
+        run: python --version
+
+      - name: Install Pipenv 🐍📂
+        run: pip install pipenv
+
+      - name: Install dependencies 📂
+        run: make install-dev
+
+      - name: Run linting 🕵️
+        run: make lint
+
+      - name: Create migrations and migrate 💾
+        run: |
+          make migrate
+
+      - name: Run unit tests 🧪
+        run: make test

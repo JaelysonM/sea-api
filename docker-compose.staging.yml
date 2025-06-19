@@ -1,0 +1,28 @@
+version: "2"
+
+services:
+  proxy:
+    depends_on:
+      - api
+    restart: always
+    container_name: fans-staging-proxy
+    build:
+      context: .docker/nginx
+      dockerfile: Dockerfile
+    ports:
+      - 8081:8080
+    networks:
+      - fans-network
+
+  api:
+    build: .
+    container_name: fans-staging-api
+    env_file: .env
+    networks:
+      - fans-network
+
+networks:
+  fans-network:
+    driver: bridge
+volumes:
+  postgres_data:

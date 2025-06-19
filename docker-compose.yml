@@ -1,0 +1,39 @@
+version: "2"
+
+services:
+  proxy:
+    depends_on:
+      - api
+    restart: always
+    container_name: fans-proxy
+    build:
+      context: .docker/nginx
+      dockerfile: Dockerfile
+    ports:
+      - 8080:8080
+    networks:
+      - fans-network
+
+  db:
+    image: postgres:12.0-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    container_name: fans-db
+    env_file:
+      - .docker/postgres/.env
+    ports:
+      - 5432:5432
+    networks:
+      - fans-network
+  api:
+    build: .
+    container_name: siasd-api
+    env_file: .env
+    networks:
+      - fans-network
+
+networks:
+  fans-network:
+    driver: bridge
+volumes:
+  postgres_data:

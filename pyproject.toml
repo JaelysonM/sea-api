@@ -1,0 +1,35 @@
+[project]
+name = "siasd-api"
+authors = [{name = "Jaelyson Martins", email = "jaelysonmartins@gmail.com"}]
+readme = "README.md"
+license = {file = "LICENSE.md"}
+classifiers = ["License :: OSI Approved :: MIT License"]
+dynamic = ["version", "description"]
+requires-python = ">=3.8"
+
+[tool.black]
+line-length = 60
+
+
+[tool.pytest.ini_options]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "serial",
+]
+
+pythonpath = [
+  "."
+]
+
+testpaths = [
+  "__tests__"
+]
+
+addopts = [
+    "--strict-markers",
+    "--strict-config",
+    "-ra",
+]
+
+[tool.bandit]
+skips = ["B311"]
