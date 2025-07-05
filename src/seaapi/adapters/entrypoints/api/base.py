@@ -4,7 +4,8 @@ from src.seaapi.adapters.entrypoints.api.v1 import (
     user,
     group,
     permission,
-    product,
+    food,
+    meal,
 )
 
 api_router = APIRouter(prefix="/v1")
@@ -31,7 +32,14 @@ api_router.include_router(
 
 
 api_router.include_router(
-    product.router,
-    prefix="/products",
-    tags=["Products"],
+    food.router,
+    prefix="/foods",
+    tags=["Foods"],
+)
+
+
+api_router.include_router(
+    meal.router,
+    prefix="/meals",
+    tags=["Meals"],
 )

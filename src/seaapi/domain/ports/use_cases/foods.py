@@ -2,12 +2,12 @@ import abc
 from typing import Union
 
 from src.seaapi.domain.entities import (
-    ProductEntity,
+    FoodEntity,
 )
-from src.seaapi.domain.dtos.products import (
-    ProductCreateInputDto,
-    ProductUpdateInputDto,
-    ProductOutputDto,
+from src.seaapi.domain.dtos.foods import (
+    FoodCreateInputDto,
+    FoodUpdateInputDto,
+    FoodOutputDto,
 )
 from src.seaapi.domain.dtos.mics import (
     SuccessResponse,
@@ -16,11 +16,11 @@ from src.seaapi.domain.dtos.mics import (
 )
 
 
-class ProductServiceInterface(abc.ABC):
+class FoodServiceInterface(abc.ABC):
     def create(
-        self, product: ProductCreateInputDto, scheduler
+        self, food: FoodCreateInputDto
     ) -> SuccessResponse:
-        return self._create(product, scheduler)
+        return self._create(food)
 
     def get_all(
         self,
@@ -28,43 +28,37 @@ class ProductServiceInterface(abc.ABC):
     ) -> PaginationData:
         return self._get_all(params=params)
 
-    def get_product(
+    def get_food(
         self, id_: int, entity: bool = False
-    ) -> Union[ProductEntity, ProductOutputDto]:
-        return self._get_product(id_, entity)
+    ) -> Union[FoodEntity, FoodOutputDto]:
+        return self._get_food(id_, entity)
 
-    def update_product(
-        self,
-        id_: int,
-        product: ProductUpdateInputDto,
-        scheduler,
+    def update_food(
+        self, id_: int, food: FoodUpdateInputDto
     ) -> SuccessResponse:
-        return self._update_product(id_, product, scheduler)
+        return self._update_food(id_, food)
 
-    def delete_product(
+    def delete_food(
         self,
         id_: int,
     ) -> SuccessResponse:
-        return self._delete_product(id_)
+        return self._delete_food(id_)
 
     @abc.abstractmethod
     def _create(
-        self, product: ProductUpdateInputDto, scheduler
+        self, food: FoodUpdateInputDto
     ) -> SuccessResponse:
         raise NotImplementedError
 
     @abc.abstractmethod
-    def _get_product(
+    def _get_food(
         self, id_: int, entity: bool = True
-    ) -> Union[ProductEntity, ProductOutputDto]:
+    ) -> Union[FoodEntity, FoodOutputDto]:
         raise NotImplementedError
 
     @abc.abstractmethod
-    def _update_product(
-        self,
-        id_: int,
-        product: ProductUpdateInputDto,
-        scheduler,
+    def _update_food(
+        self, id_: int, food: FoodUpdateInputDto
     ) -> SuccessResponse:
         raise NotImplementedError
 
@@ -76,7 +70,7 @@ class ProductServiceInterface(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def _delete_product(
+    def _delete_food(
         self,
         id_: int,
     ) -> SuccessResponse:

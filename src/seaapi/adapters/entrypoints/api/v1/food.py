@@ -7,24 +7,24 @@ from fastapi import (
     APIRouter,
     Depends,
     Form,
-    BackgroundTasks,
     UploadFile,
+    File,
 )
 from fastapi.security import HTTPBearer
-from src.seaapi.domain.ports.use_cases.products import (
-    ProductServiceInterface,
+from src.seaapi.domain.ports.use_cases.foods import (
+    FoodServiceInterface,
 )
 
 from src.seaapi.config.containers import Container
 from src.seaapi.domain.dtos.mics import (
     SuccessResponse,
 )
-from src.seaapi.domain.dtos.products import (
-    ProductCreateInputDto,
-    ProductOutputDto,
-    ProductPaginationData,
-    ProductPaginationParams,
-    ProductUpdateInputDto,
+from src.seaapi.domain.dtos.foods import (
+    FoodCreateInputDto,
+    FoodOutputDto,
+    FoodPaginationData,
+    FoodPaginationParams,
+    FoodUpdateInputDto,
 )
 from src.seaapi.adapters.entrypoints.api.shared.permissions import (
     PermissionsDependency,
@@ -32,7 +32,6 @@ from src.seaapi.adapters.entrypoints.api.shared.permissions import (
     Or,
     IsAdministrator,
     IsAuthenticated,
-    IsCustomer,
     HasObjectCreatePermission,
     HasObjectReadPermission,
     HasObjectEditPermission,
@@ -61,7 +60,7 @@ auth_scheme = HTTPBearer()
                             [
                                 IsAdministrator(),
                                 HasObjectCreatePermission(
-                                    resource="product"
+                                    resource="food"
                                 ),
                             ]
                         ),
@@ -74,27 +73,33 @@ auth_scheme = HTTPBearer()
 )
 @inject
 def create(
-    background_tasks: BackgroundTasks,
     photo: Optional[UploadFile],
     name: str = Form(),
     description: Optional[str] = Form(None),
-    product_service: ProductServiceInterface = Depends(
-        Provide[Container.product_service]
+    calories: float = Form(),
+    carbs: float = Form(),
+    fat: float = Form(),
+    protein: float = Form(),
+    food_service: FoodServiceInterface = Depends(
+        Provide[Container.food_service]
     ),
 ):
-    return product_service.create(
-        ProductCreateInputDto(
+    return food_service.create(
+        FoodCreateInputDto(
             name=name,
             description=description,
+            calories=calories,
+            carbs=carbs,
+            fat=fat,
+            protein=protein,
             photo=convert_upload_file_to_domain(photo),
         ),
-        scheduler=background_tasks,
     )
 
 
 @router.get(
     "",
-    response_model=ProductPaginationData,
+    response_model=FoodPaginationData,
     dependencies=[
         Depends(
             PermissionsDependency(
@@ -105,7 +110,7 @@ def create(
                             [
                                 IsAdministrator(),
                                 HasObjectReadPermission(
-                                    resource="product"
+                                    resource="food"
                                 ),
                             ]
                         ),
@@ -118,25 +123,25 @@ def create(
 )
 @inject
 def get_all(
-    params: ProductPaginationParams = Depends(),
-    product_service: ProductServiceInterface = Depends(
-        Provide[Container.product_service]
+    params: FoodPaginationParams = Depends(),
+    food_service: FoodServiceInterface = Depends(
+        Provide[Container.food_service]
     ),
 ):
 
-    return product_service.get_all(params)
+    return food_service.get_all(params)
 
 
-@router.get("/{id}", response_model=ProductOutputDto)
+@router.get("/{id}", response_model=FoodOutputDto)
 @inject
-def get_product(
+def get_food(
     id: int,
-    product_service: ProductServiceInterface = Depends(
-        Provide[Container.product_service]
+    food_service: FoodServiceInterface = Depends(
+        Provide[Container.food_service]
     ),
 ):
 
-    return product_service.get_product(id)
+    return food_service.get_food(id)
 
 
 @router.put(
@@ -150,9 +155,9 @@ def get_product(
                         IsAuthenticated(),
                         Or(
                             [
-                                IsCustomer(),
+                                IsAdministrator(),
                                 HasObjectEditPermission(
-                                    resource="product"
+                                    resource="food"
                                 ),
                             ]
                         ),
@@ -164,25 +169,45 @@ def get_product(
     ],
 )
 @inject
-def edit_product(
+def edit_food(
     id: int,
-    background_tasks: BackgroundTasks,
     name: Optional[str] = Form(None),
     description: Optional[str] = Form(None),
-    photo: Optional[UploadFile] = Depends(),
-    product_service: ProductServiceInterface = Depends(
-        Provide[Container.product_service]
+    calories: Optional[float] = Form(None),
+    carbs: Optional[float] = Form(None),
+    fat: Optional[float] = Form(None),
+    protein: Optional[float] = Form(None),
+    scale_id: Optional[int] = Form(None),
+    photo: Optional[UploadFile] = File(None),
+    food_service: FoodServiceInterface = Depends(
+        Provide[Container.food_service]
     ),
 ):
 
-    return product_service.update_product(
+    converted_file = (
+        convert_upload_file_to_domain(photo)
+        if photo is not None
+        else None
+    )
+
+    raw = {
+        "name": name,
+        "description": description,
+        "calories": calories,
+        "carbs": carbs,
+        "fat": fat,
+        "protein": protein,
+        "scale_id": scale_id,
+        "photo": converted_file,
+    }
+
+    update_data = {
+        k: v for k, v in raw.items() if v is not None
+    }
+
+    return food_service.update_food(
         id,
-        ProductUpdateInputDto(
-            name=name,
-            description=description,
-            photo=convert_upload_file_to_domain(photo),
-        ),
-        scheduler=background_tasks,
+        FoodUpdateInputDto(**update_data),
     )
 
 
@@ -197,9 +222,9 @@ def edit_product(
                         IsAuthenticated(),
                         Or(
                             [
-                                IsCustomer(),
+                                IsAdministrator(),
                                 HasObjectDeletePermission(
-                                    resource="product"
+                                    resource="food"
                                 ),
                             ]
                         ),
@@ -211,10 +236,10 @@ def edit_product(
     ],
 )
 @inject
-def delete_product(
+def delete_food(
     id: int,
-    product_service: ProductServiceInterface = Depends(
-        Provide[Container.product_service]
+    food_service: FoodServiceInterface = Depends(
+        Provide[Container.food_service]
     ),
 ):
-    return product_service.delete_product(id)
+    return food_service.delete_food(id)

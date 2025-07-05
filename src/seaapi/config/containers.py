@@ -7,14 +7,17 @@ from src.seaapi.adapters.unit_of_works import (
     GroupSqlAlchemyUnitOfWork,
     TokenSqlAlchemyUnitOfWork,
     PermissionSqlAlchemyUnitOfWork,
-    ProductSqlAlchemyUnitOfWork,
+    FoodSqlAlchemyUnitOfWork,
+    ScaleSqlAlchemyUnitOfWork,
+    MealSqlAlchemyUnitOfWork,
 )
 from src.seaapi.adapters.use_cases import (
     UserService,
     GroupService,
     PermissionService,
     TokenService,
-    ProductService,
+    FoodService,
+    MealService,
 )
 from src.seaapi.config.settings import settings
 
@@ -69,8 +72,18 @@ class Container(containers.DeclarativeContainer):
         session_factory=DEFAULT_SESSION_FACTORY,
     )
 
-    product_uow = providers.Factory(
-        ProductSqlAlchemyUnitOfWork,
+    food_uow = providers.Factory(
+        FoodSqlAlchemyUnitOfWork,
+        session_factory=DEFAULT_SESSION_FACTORY,
+    )
+
+    scale_uow = providers.Factory(
+        ScaleSqlAlchemyUnitOfWork,
+        session_factory=DEFAULT_SESSION_FACTORY,
+    )
+
+    meal_uow = providers.Factory(
+        MealSqlAlchemyUnitOfWork,
         session_factory=DEFAULT_SESSION_FACTORY,
     )
 
@@ -111,8 +124,17 @@ class Container(containers.DeclarativeContainer):
         PermissionService, uow=permission_uow
     )
 
-    product_service = providers.Factory(
-        ProductService,
-        uow=product_uow,
+    food_service = providers.Factory(
+        FoodService,
+        uow=food_uow,
+        scale_uow=scale_uow,
+        storage_service=storage_service,
+    )
+
+    meal_service = providers.Factory(
+        MealService,
+        uow=meal_uow,
+        food_uow=food_uow,
+        user_uow=user_uow,
         storage_service=storage_service,
     )

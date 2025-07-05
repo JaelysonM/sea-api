@@ -24,3 +24,6 @@ class DefaultAlchemyUnitOfWork(DefaultUnitOfWorkInterface):
 
     def expunge(self):
         self.session.expunge_all()
+
+    def flush(self):
+        self.session.flush()

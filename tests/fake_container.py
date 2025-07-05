@@ -1,25 +1,35 @@
 from dependency_injector import containers, providers
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
+from src.seaapi import config
 from src.seaapi.adapters.unit_of_works import (
     UserSqlAlchemyUnitOfWork,
     GroupSqlAlchemyUnitOfWork,
     TokenSqlAlchemyUnitOfWork,
     PermissionSqlAlchemyUnitOfWork,
+    FoodSqlAlchemyUnitOfWork,
+    ScaleSqlAlchemyUnitOfWork,
+    MealSqlAlchemyUnitOfWork,
 )
 from src.seaapi.adapters.use_cases import (
     UserService,
     GroupService,
     PermissionService,
     TokenService,
+    FoodService,
+    MealService,
 )
+from src.seaapi.config.settings import settings
 
 from src.seaapi.adapters.services.notification.fake import (
     FakeNotificationService,
 )
+
 from src.seaapi.adapters.services.pdf.jinja import (
     JinjaPDFGenerator,
 )
+
+
 from src.seaapi.adapters.services.storage.fake import (
     FakeStorageService,
 )
@@ -65,6 +75,21 @@ class Container(containers.DeclarativeContainer):
         session_factory=DEFAULT_SESSION_FACTORY,
     )
 
+    food_uow = providers.Factory(
+        FoodSqlAlchemyUnitOfWork,
+        session_factory=DEFAULT_SESSION_FACTORY,
+    )
+
+    scale_uow = providers.Factory(
+        ScaleSqlAlchemyUnitOfWork,
+        session_factory=DEFAULT_SESSION_FACTORY,
+    )
+
+    meal_uow = providers.Factory(
+        MealSqlAlchemyUnitOfWork,
+        session_factory=DEFAULT_SESSION_FACTORY,
+    )
+
     notification_service = providers.Factory(
         FakeNotificationService
     )
@@ -76,6 +101,7 @@ class Container(containers.DeclarativeContainer):
     storage_service = providers.Singleton(
         FakeStorageService
     )
+
     token_service = providers.Factory(
         TokenService,
         uow=token_uow,
@@ -97,4 +123,19 @@ class Container(containers.DeclarativeContainer):
 
     permission_service = providers.Factory(
         PermissionService, uow=permission_uow
+    )
+
+    food_service = providers.Factory(
+        FoodService,
+        uow=food_uow,
+        scale_uow=scale_uow,
+        storage_service=storage_service,
+    )
+
+    meal_service = providers.Factory(
+        MealService,
+        uow=meal_uow,
+        food_uow=food_uow,
+        user_uow=user_uow,
+        storage_service=storage_service,
     )

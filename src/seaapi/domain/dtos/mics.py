@@ -44,7 +44,6 @@ class SuccessWithWarningResponse(SuccessResponse):
 
 class SuccessWithIdResponse(SuccessResponse):
     reference_id: int
-    tempo_slot_config: int
 
 
 class PaginationParams(BaseModel):

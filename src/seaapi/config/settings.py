@@ -74,6 +74,8 @@ class Settings:
     STORAGE_SECRET_KEY = os.getenv("STORAGE_SECRET_KEY")
     STORAGE_BUCKET = os.getenv("STORAGE_BUCKET")
 
+    PRICE_PER_KG = float(os.getenv("PRICE_PER_KG", 49.9))
+
 
 settings = Settings()
 

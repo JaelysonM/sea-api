@@ -21,3 +21,7 @@ class DefaultUnitOfWorkInterface(abc.ABC):
     @abc.abstractmethod
     def expunge(self):
         raise NotImplementedError
+
+    @abc.abstractmethod
+    def flush(self):
+        raise NotImplementedError
