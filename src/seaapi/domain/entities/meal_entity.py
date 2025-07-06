@@ -54,37 +54,52 @@ class MealEntity(BaseEntity):
 
     @property
     def total_carbs(self) -> float:
-        return sum(
-            measurement.food.carbs * measurement.weight
-            for measurement in self.food_measurements
-        ) * 1000
+        return (
+            sum(
+                measurement.food.carbs * measurement.weight
+                for measurement in self.food_measurements
+            )
+            * 1000
+        )
 
     @property
     def total_fat(self) -> float:
-        return sum(
-            measurement.food.fat * measurement.weight
-            for measurement in self.food_measurements
-        ) * 1000
+        return (
+            sum(
+                measurement.food.fat * measurement.weight
+                for measurement in self.food_measurements
+            )
+            * 1000
+        )
 
     @property
     def total_protein(self) -> float:
-        return sum(
-            measurement.food.protein * measurement.weight
-            for measurement in self.food_measurements
-        ) * 1000
+        return (
+            sum(
+                measurement.food.protein
+                * measurement.weight
+                for measurement in self.food_measurements
+            )
+            * 1000
+        )
 
     @property
     def total_weight(self) -> float:
-        return sum(
-            measurement.weight
-            for measurement in self.food_measurements
-        ) * 1000
+        return (
+            sum(
+                measurement.weight
+                for measurement in self.food_measurements
+            )
+            * 1000
+        )
 
     def recalculate_final_price(self) -> float:
         if not self.total_weight:
             return 0.0
         return round(
-            (self.total_weight / 1000) * settings.PRICE_PER_KG, 2
+            (self.total_weight / 1000)
+            * settings.PRICE_PER_KG,
+            2,
         )
 
     def finish(self) -> None:

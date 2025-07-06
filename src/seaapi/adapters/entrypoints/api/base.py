@@ -6,6 +6,8 @@ from src.seaapi.adapters.entrypoints.api.v1 import (
     permission,
     food,
     meal,
+    scale,
+    user_meal,
 )
 
 api_router = APIRouter(prefix="/v1")
@@ -13,33 +15,49 @@ api_router = APIRouter(prefix="/v1")
 api_router.include_router(
     auth.router, prefix="/auth", tags=["Authentication"]
 )
+
 api_router.include_router(
-    user.router, prefix="/users", tags=["Users"]
+    user_meal.router,
+    prefix="/auth/meals",
+    tags=["Authentication/Meals"],
+)
+
+
+api_router.include_router(
+    user.router,
+    prefix="/users",
+    tags=["Administrator/Users"],
 )
 
 api_router.include_router(
     group.router,
     prefix="/groups",
-    tags=["Groups and Permissions"],
+    tags=["Administrator/Groups and Permissions"],
 )
 
 
 api_router.include_router(
     permission.router,
     prefix="/permissions",
-    tags=["Groups and Permissions"],
+    tags=["Administrator/Groups and Permissions"],
 )
 
 
 api_router.include_router(
     food.router,
     prefix="/foods",
-    tags=["Foods"],
+    tags=["Administrator/Foods"],
 )
-
 
 api_router.include_router(
     meal.router,
     prefix="/meals",
-    tags=["Meals"],
+    tags=["Administrator/Meals"],
+)
+
+
+api_router.include_router(
+    scale.router,
+    prefix="/scales",
+    tags=["Administrator/Scales"],
 )

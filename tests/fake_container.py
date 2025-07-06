@@ -1,7 +1,6 @@
 from dependency_injector import containers, providers
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
-from src.seaapi import config
 from src.seaapi.adapters.unit_of_works import (
     UserSqlAlchemyUnitOfWork,
     GroupSqlAlchemyUnitOfWork,
@@ -18,9 +17,8 @@ from src.seaapi.adapters.use_cases import (
     TokenService,
     FoodService,
     MealService,
+    ScaleService,
 )
-from src.seaapi.config.settings import settings
-
 from src.seaapi.adapters.services.notification.fake import (
     FakeNotificationService,
 )
@@ -138,4 +136,9 @@ class Container(containers.DeclarativeContainer):
         food_uow=food_uow,
         user_uow=user_uow,
         storage_service=storage_service,
+    )
+
+    scale_service = providers.Factory(
+        ScaleService,
+        uow=scale_uow,
     )

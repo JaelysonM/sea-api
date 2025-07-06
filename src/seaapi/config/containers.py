@@ -18,6 +18,7 @@ from src.seaapi.adapters.use_cases import (
     TokenService,
     FoodService,
     MealService,
+    ScaleService,
 )
 from src.seaapi.config.settings import settings
 
@@ -137,4 +138,9 @@ class Container(containers.DeclarativeContainer):
         food_uow=food_uow,
         user_uow=user_uow,
         storage_service=storage_service,
+    )
+
+    scale_service = providers.Factory(
+        ScaleService,
+        uow=scale_uow,
     )
