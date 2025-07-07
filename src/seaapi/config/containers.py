@@ -20,6 +20,9 @@ from src.seaapi.adapters.use_cases import (
     MealService,
     ScaleService,
 )
+from src.seaapi.adapters.use_cases.qrcode import (
+    QRCodeAuthService,
+)
 from src.seaapi.config.settings import settings
 
 from src.seaapi.adapters.services.notification.email import (
@@ -28,6 +31,10 @@ from src.seaapi.adapters.services.notification.email import (
 
 from src.seaapi.adapters.services.pdf.jinja import (
     JinjaPDFGenerator,
+)
+
+from src.seaapi.adapters.services.qrcode import (
+    QRCodeService,
 )
 
 
@@ -96,6 +103,10 @@ class Container(containers.DeclarativeContainer):
         JinjaPDFGenerator,
     )
 
+    qrcode_generator = providers.Factory(
+        QRCodeService,
+    )
+
     storage_service = providers.Singleton(
         S3StorageService
         if settings.STORAGE_PROVIDER == "s3"
@@ -143,4 +154,12 @@ class Container(containers.DeclarativeContainer):
     scale_service = providers.Factory(
         ScaleService,
         uow=scale_uow,
+    )
+
+    qrcode_service = providers.Factory(
+        QRCodeAuthService,
+        token_uow=token_uow,
+        token_service=token_service,
+        user_service=user_service,
+        qrcode_generator=qrcode_generator,
     )

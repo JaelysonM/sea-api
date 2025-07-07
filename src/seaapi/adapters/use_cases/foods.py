@@ -8,6 +8,7 @@ from src.seaapi.domain.dtos.foods import (
     FoodCreateInputDto,
     FoodOutputDto,
     FoodUpdateInputDto,
+    FoodPaginationParams,
 )
 from src.seaapi.domain.dtos.mics import (
     SuccessResponse,
@@ -175,6 +176,26 @@ class FoodService(FoodServiceInterface):
                     size=page_size,
                     results=results,
                 ),
+            )
+
+    def _get_current_menu(
+        self,
+    ) -> PaginationData:
+        with self.uow:
+            foods, _ = self.uow.foods.find_all(
+                params=FoodPaginationParams(
+                    scale_id={"not": None}, page=None
+                ),
+            )
+            return PaginationData(
+                data=[
+                    FoodOutputDto(
+                        **food.to_beautiful_dict(
+                            storage_service=self.storage_service
+                        )
+                    )
+                    for food in foods
+                ]
             )
 
     def _delete_food(

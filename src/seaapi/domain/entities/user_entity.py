@@ -179,6 +179,18 @@ class UserEntity(BaseEntity):
             refresh_token_expiration,
         ]
 
+    def can_generate_qrcode(self) -> bool:
+        return self.is_active
+
+    def authenticate_qrcode(
+        self,
+    ) -> Tuple[Tokens, Tuple[datetime, datetime]]:
+        if not self.is_active:
+            raise UserNotActiveException()
+
+        self.last_login = datetime.now()
+        return self.tokens
+
     def mask_email(self) -> str:
         username, domain = self.email.split("@")
         if len(username) > 2:

@@ -8,6 +8,8 @@ from src.seaapi.adapters.entrypoints.api.v1 import (
     meal,
     scale,
     user_meal,
+    qrcode,
+    user_food,
 )
 
 api_router = APIRouter(prefix="/v1")
@@ -20,6 +22,12 @@ api_router.include_router(
     user_meal.router,
     prefix="/auth/meals",
     tags=["Authentication/Meals"],
+)
+
+api_router.include_router(
+    user_food.router,
+    prefix="/auth/foods",
+    tags=["Authentication/Foods"],
 )
 
 
@@ -60,4 +68,10 @@ api_router.include_router(
     scale.router,
     prefix="/scales",
     tags=["Administrator/Scales"],
+)
+
+api_router.include_router(
+    qrcode.router,
+    prefix="/qrcode",
+    tags=["QRCode Authentication"],
 )

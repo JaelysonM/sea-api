@@ -28,6 +28,9 @@ class FoodServiceInterface(abc.ABC):
     ) -> PaginationData:
         return self._get_all(params=params)
 
+    def get_current_menu(self) -> PaginationData:
+        return self._get_current_menu()
+
     def get_food(
         self, id_: int, entity: bool = False
     ) -> Union[FoodEntity, FoodOutputDto]:
@@ -66,6 +69,12 @@ class FoodServiceInterface(abc.ABC):
     def _get_all(
         self,
         params: PaginationParams,
+    ) -> PaginationData:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def _get_current_menu(
+        self,
     ) -> PaginationData:
         raise NotImplementedError
 

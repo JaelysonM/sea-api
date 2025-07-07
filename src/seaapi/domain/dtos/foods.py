@@ -7,6 +7,7 @@ from src.seaapi.domain.dtos.mics import (
     PaginationParams,
     PaginationData,
     UploadedFile,
+    FilterValue,
 )
 
 
@@ -55,3 +56,4 @@ class FoodPaginationData(PaginationData):
 class FoodPaginationParams(PaginationParams):
     name: Optional[str]
     description: Optional[str]
+    scale_id: FilterValue[int]

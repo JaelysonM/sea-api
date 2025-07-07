@@ -62,7 +62,7 @@ class PaginationOptions(BaseModel):
 
 class PaginationData(BaseModel):
     data: List
-    options: PaginationOptions
+    options: Optional[PaginationOptions]
 
 
 class ZipCode(ConstrainedStr):
