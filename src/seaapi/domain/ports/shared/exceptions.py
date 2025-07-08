@@ -9,6 +9,12 @@ class CustomException(Exception):
         self.detail = detail
         self.status_code = status_code
 
+    def __str__(self):
+        return (
+            f"{self.__class__.__name__} - {self.error_code}:"
+            f"{self.detail} (Status Code: {self.status_code})"
+        )
+
 
 class SystemException(CustomException):
     def __init__(
@@ -314,6 +320,21 @@ class MealAlreadyFinishedException(CustomException):
         detail: str = "A refeição já foi finalizada.",
         status_code: int = 400,
         error_code: str = "meal_already_finished",
+    ):
+        super().__init__(
+            detail=detail,
+            status_code=status_code,
+            error_code=error_code,
+        )
+
+
+class NoActiveMealException(CustomException):
+    def __init__(
+        self,
+        detail: str = "Você não tem nenhuma refeição ativa no momento, "
+        + "identifique-se para abrir uma sessão.",
+        status_code: int = 404,
+        error_code: str = "no_active_meal",
     ):
         super().__init__(
             detail=detail,

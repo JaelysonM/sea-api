@@ -37,8 +37,6 @@ jobs:
       DB_USER: postgres
       DB_NAME: github-actions
       DB_PASS: postgres
-      FAN_MANAGER_EMAIL: ${{ secrets.FAN_MANAGER_EMAIL }}
-      FAN_MANAGER_PASSWORD: ${{ secrets.SUPERUSER_PASSWORD }}
       SUPERUSER_EMAIL: ${{ secrets.SUPERUSER_EMAIL }}
       SUPERUSER_PASSWORD: ${{ secrets.SUPERUSER_PASSWORD }}
       WEB_APP_BASE_URL: ${{ secrets.WEB_APP_BASE_URL }}

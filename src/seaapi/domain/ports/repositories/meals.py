@@ -34,8 +34,21 @@ class MealRepositoryInterface(
             user_id=user_id,
         )
 
+    def find_current_meal(
+        self, user_id: int
+    ) -> Optional[MealEntity]:
+        return self._find_current_meal(
+            user_id=user_id,
+        )
+
     @abc.abstractmethod
     def _exists_non_finished_meal(
         cls, user_id: int
     ) -> bool:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def _find_current_meal(
+        cls, user_id: int
+    ) -> Optional[MealEntity]:
         raise NotImplementedError

@@ -1,3 +1,4 @@
+from typing import Optional
 from src.seaapi.domain.ports.repositories.meals import (
     MealRepositoryInterface,
 )
@@ -24,4 +25,16 @@ class MealSqlAlchemyRepository(
             )
             .count()
             > 0
+        )
+
+    def _find_current_meal(
+        self, user_id: int
+    ) -> Optional[MealEntity]:
+        return (
+            self.session.query(MealEntity)
+            .filter(
+                MealEntity.user_id == user_id,
+                MealEntity.finished.is_(False),
+            )
+            .first()
         )

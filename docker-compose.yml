@@ -5,35 +5,73 @@ services:
     depends_on:
       - api
     restart: always
-    container_name: fans-proxy
+    container_name: sea-proxy
     build:
       context: .docker/nginx
       dockerfile: Dockerfile
     ports:
       - 8080:8080
     networks:
-      - fans-network
+      - sea-network
 
   db:
     image: postgres:12.0-alpine
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    container_name: fans-db
+    container_name: sea-db
     env_file:
       - .docker/postgres/.env
     ports:
       - 5432:5432
     networks:
-      - fans-network
+      - sea-network
+
+  # MQTT Broker (Eclipse Mosquitto)
+  mqtt:
+    image: eclipse-mosquitto:2.0
+    container_name: sea-mqtt
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./mqtt/config:/mosquitto/config
+      - ./mqtt/data:/mosquitto/data
+      - ./mqtt/log:/mosquitto/log
+    networks:
+      - sea-network
+
   api:
     build: .
     container_name: sea-api
     env_file: .env
+    environment:
+      - MQTT_HOST=mqtt
+      - MQTT_PORT=1883
+      - ENABLE_MESSAGING=true
+    depends_on:
+      - db
+      - mqtt
     networks:
-      - fans-network
+      - sea-network
+
+  # Message Worker
+  message-worker:
+    build: .
+    container_name: sea-message-worker
+    command: python -m src.seaapi.adapters.entrypoints.messaging
+    env_file: .env
+    environment:
+      - MQTT_HOST=mqtt
+      - MQTT_PORT=1883
+      - ENABLE_MESSAGING=true
+    depends_on:
+      - db
+      - mqtt
+    networks:
+      - sea-network
 
 networks:
-  fans-network:
+  sea-network:
     driver: bridge
 volumes:
   postgres_data:

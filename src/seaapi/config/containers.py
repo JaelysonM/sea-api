@@ -29,6 +29,13 @@ from src.seaapi.adapters.services.notification.email import (
     EmailNotificationService,
 )
 
+# Messaging imports
+from src.seaapi.adapters.services.messaging import (
+    MQTTPublisher,
+    MQTTConsumer,
+    EventBus,
+)
+
 from src.seaapi.adapters.services.pdf.jinja import (
     JinjaPDFGenerator,
 )
@@ -118,14 +125,6 @@ class Container(containers.DeclarativeContainer):
         uow=token_uow,
     )
 
-    user_service = providers.Factory(
-        UserService,
-        uow=user_uow,
-        group_uow=group_uow,
-        token_service=token_service,
-        notification_service=notification_service,
-    )
-
     group_service = providers.Factory(
         GroupService,
         uow=group_uow,
@@ -141,6 +140,28 @@ class Container(containers.DeclarativeContainer):
         uow=food_uow,
         scale_uow=scale_uow,
         storage_service=storage_service,
+    )
+
+    # Messaging providers (definir antes dos serviços que dependem deles)
+    # Messaging providers
+    mqtt_publisher = providers.Factory(MQTTPublisher)
+
+    mqtt_consumer = providers.Factory(
+        MQTTConsumer,
+    )
+
+    event_bus = providers.Factory(
+        EventBus,
+        publisher=mqtt_publisher,
+        consumer=mqtt_consumer,
+    )
+
+    user_service = providers.Factory(
+        UserService,
+        uow=user_uow,
+        group_uow=group_uow,
+        token_service=token_service,
+        notification_service=notification_service,
     )
 
     meal_service = providers.Factory(

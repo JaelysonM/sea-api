@@ -5,24 +5,24 @@ services:
     depends_on:
       - api
     restart: always
-    container_name: fans-staging-proxy
+    container_name: sea-staging-proxy
     build:
       context: .docker/nginx
       dockerfile: Dockerfile
     ports:
       - 8081:8080
     networks:
-      - fans-network
+      - sea-network
 
   api:
     build: .
-    container_name: fans-staging-api
+    container_name: sea-staging-api
     env_file: .env
     networks:
-      - fans-network
+      - sea-network
 
 networks:
-  fans-network:
+  sea-network:
     driver: bridge
 volumes:
   postgres_data:

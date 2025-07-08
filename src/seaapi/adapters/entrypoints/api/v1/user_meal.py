@@ -1,3 +1,4 @@
+from typing import Optional
 from dependency_injector.wiring import (
     Provide,
     inject,
@@ -56,6 +57,27 @@ def get_user_meals(
     return meal_service.get_user_meals(
         user_id=user_id, params=params
     )
+
+
+@router.get(
+    "/current",
+    response_model=Optional[MealOutputDto],
+    dependencies=[
+        Depends(
+            PermissionsDependency(And([IsAuthenticated()]))
+        ),
+        Depends(auth_scheme),
+    ],
+)
+@inject
+def get_current_meal(
+    meal_service: MealServiceInterface = Depends(
+        Provide[Container.meal_service]
+    ),
+    user: UserEntity = Depends(get_user),
+):
+    user_id = user.id
+    return meal_service.get_current_meal(user_id=user_id)
 
 
 @router.get(

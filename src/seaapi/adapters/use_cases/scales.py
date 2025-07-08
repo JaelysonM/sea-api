@@ -22,9 +22,6 @@ from src.seaapi.domain.entities.scale_entity import (
 from src.seaapi.domain.ports.unit_of_works.scales import (
     ScaleUnitOfWorkInterface,
 )
-from src.seaapi.domain.ports.unit_of_works.scales import (
-    ScaleUnitOfWorkInterface,
-)
 from src.seaapi.domain.ports.use_cases.scales import (
     ScaleServiceInterface,
 )

@@ -1,4 +1,4 @@
-PHONY = help install install-dev test test-cov run init-db format lint type secure
+PHONY = help install install-dev test test-cov run init-db format lint type secure messaging-up messaging-down messaging-logs messaging-worker messaging-publish-test messaging-subscribe-test
 
 help:
 	@echo "---------------HELP-----------------"
@@ -13,6 +13,11 @@ help:
 	@echo "To check linter type -> make lint"
 	@echo "To run type checker -> make type-check"
 	@echo "To run all security related commands -> make secure"
+	@echo "------------ MESSAGING -------------"
+	@echo "To start MQTT broker -> make messaging-up"
+	@echo "To stop MQTT broker -> make messaging-down"
+	@echo "To see MQTT logs -> make messaging-logs"
+	@echo "To start messaging worker -> make messaging-worker"
 	@echo "------------------------------------"
 
 install:
@@ -55,3 +60,13 @@ type:
 
 secure:
 	pipenv run bandit -r src --config pyproject.toml
+
+
+messaging-worker:
+	pipenv run python -m src.seaapi.adapters.entrypoints.messaging.messaging_worker
+
+messaging-publish-test:
+	mosquitto_pub -h localhost -t "events/meal/finished" -m '{"event_type":"meal.finished","data":{"meal_id":"123","user_id":"456","finished_at":"2024-01-15T10:30:00Z"}}'
+
+messaging-subscribe-test:
+	mosquitto_sub -h localhost -t "events/meal/+"

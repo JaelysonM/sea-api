@@ -14,7 +14,7 @@ load_dotenv(dotenv_path=env_path)
 class Settings:
     APP_NAME: str = "sea-api"
     APP_VERSION: str = "0.0.1"
-    MARKETING_NAME: str = "3D-Fans"
+    MARKETING_NAME: str = "Sea API"
     COMPANY_NAME: str = "Make a Vision"
 
     POSTGRES_USER: str = os.getenv("DB_USER")
@@ -75,6 +75,33 @@ class Settings:
     STORAGE_BUCKET = os.getenv("STORAGE_BUCKET")
 
     PRICE_PER_KG = float(os.getenv("PRICE_PER_KG", 49.9))
+
+    # Messaging Configuration
+    MESSAGING_ENABLED = (
+        os.getenv("MESSAGING_ENABLED", "false").lower()
+        == "true"
+    )
+    MESSAGING_BACKEND = os.getenv(
+        "MESSAGING_BACKEND", "mqtt"
+    )
+
+    # MQTT Configuration
+    MQTT_BROKER_HOST = os.getenv(
+        "MQTT_BROKER_HOST", "localhost"
+    )
+    MQTT_BROKER_PORT = int(
+        os.getenv("MQTT_BROKER_PORT", 1883)
+    )
+    MQTT_USERNAME = os.getenv("MQTT_USERNAME")
+    MQTT_PASSWORD = os.getenv("MQTT_PASSWORD")
+    MQTT_QOS = int(os.getenv("MQTT_QOS", 1))
+    MQTT_RETAIN = (
+        os.getenv("MQTT_RETAIN", "false").lower() == "true"
+    )
+    MQTT_KEEPALIVE = int(os.getenv("MQTT_KEEPALIVE", 60))
+    MQTT_TOPIC_PREFIX = os.getenv(
+        "MQTT_TOPIC_PREFIX", "sea"
+    )
 
 
 settings = Settings()

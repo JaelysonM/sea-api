@@ -40,6 +40,7 @@ from src.seaapi.domain.ports.use_cases.meals import (
 from src.seaapi.domain.ports.shared.exceptions import (
     MealAlreadyInProgressException,
     EntityNotFoundOrDeletedException,
+    NoActiveMealException,
 )
 
 
@@ -247,6 +248,23 @@ class MealService(MealServiceInterface):
                 )
             return MealOutputDto(
                 **meal_.to_beautiful_dict(
+                    storage_service=self.storage_service
+                ),
+            )
+
+    def _get_current_meal(
+        self, user_id: int
+    ) -> MealOutputDto:
+        with self.uow:
+            current_meal = self.uow.meals.find_current_meal(
+                user_id=user_id
+            )
+
+            if not current_meal:
+                raise NoActiveMealException()
+
+            return MealOutputDto(
+                **current_meal.to_beautiful_dict(
                     storage_service=self.storage_service
                 ),
             )

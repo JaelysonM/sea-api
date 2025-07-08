@@ -30,6 +30,7 @@ pygad = "==3.4.0"
 numpy = "==1.24.4"
 ortools = "*"
 qrcode = {extras = ["pil"], version = "*"}
+paho-mqtt = "==1.6.1"
 
 [dev-packages]
 pre-commit="==2.18.1"

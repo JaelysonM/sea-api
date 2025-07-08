@@ -54,6 +54,12 @@ class MealServiceInterface(abc.ABC):
     ) -> MealOutputDto:
         return self._get_user_meal(user_id, id_, entity)
 
+    def get_current_meal(
+        self,
+        user_id: int,
+    ) -> MealOutputDto:
+        return self._get_current_meal(user_id)
+
     def get_meal(
         self, id_: int, entity: bool = False
     ) -> Union[MealEntity, MealOutputDto]:
@@ -90,6 +96,13 @@ class MealServiceInterface(abc.ABC):
         self,
         user_id: int,
         id_: int,
+    ) -> MealOutputDto:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def _get_current_meal(
+        self,
+        user_id: int,
     ) -> MealOutputDto:
         raise NotImplementedError
 

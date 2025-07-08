@@ -27,9 +27,6 @@ DB_PORT=<sua_porta_do_banco_de_dados>
 SUPERUSER_EMAIL=<seu_email_do_superusuario>
 SUPERUSER_PASSWORD=<sua_senha_do_superusuario>
 
-FAN_MANAGER_EMAIL=<email_do_gerente_de_fans>
-FAN_MANAGER_PASSWORD=<senha_do_gerente_de_fans>
-
 MAIL_FROM=<seu_email_de_envio>
 MAIL_FROM_NAME=<seu_nome_de_envio>
 MAIL_SERVER=<seu_servidor_de_email>
