@@ -22,6 +22,7 @@ class MealEntity(BaseEntity):
     created_at: datetime
     user_id: int
     final_price: float
+    plate_identifier: str
 
     finished: bool
 
@@ -47,50 +48,39 @@ class MealEntity(BaseEntity):
 
     @property
     def total_calories(self) -> float:
+        # calories por 100g, weight em kg → weight * 1000 g / 100 g = weight * 10
         return sum(
-            measurement.food.calories * measurement.weight
-            for measurement in self.food_measurements
+            measurement.per_hundred_grams_calories()
+            for measurement in self.valid_food_measurements
         )
 
     @property
     def total_carbs(self) -> float:
-        return (
-            sum(
-                measurement.food.carbs * measurement.weight
-                for measurement in self.food_measurements
-            )
-            * 1000
+        return sum(
+            measurement.per_hundred_grams_carbs()
+            for measurement in self.valid_food_measurements
         )
 
     @property
     def total_fat(self) -> float:
-        return (
-            sum(
-                measurement.food.fat * measurement.weight
-                for measurement in self.food_measurements
-            )
-            * 1000
+        return sum(
+            measurement.per_hundred_grams_fat()
+            for measurement in self.valid_food_measurements
         )
 
     @property
     def total_protein(self) -> float:
-        return (
-            sum(
-                measurement.food.protein
-                * measurement.weight
-                for measurement in self.food_measurements
-            )
-            * 1000
+        return sum(
+            measurement.per_hundred_grams_protein()
+            for measurement in self.valid_food_measurements
         )
 
     @property
     def total_weight(self) -> float:
-        return (
-            sum(
-                measurement.weight
-                for measurement in self.food_measurements
-            )
-            * 1000
+        # soma em kg, converte pra g
+        return sum(
+            measurement.weight
+            for measurement in self.valid_food_measurements
         )
 
     def recalculate_final_price(self) -> float:
@@ -108,6 +98,17 @@ class MealEntity(BaseEntity):
         self.finished = True
         self.final_price = self.recalculate_final_price()
 
+    @property
+    def valid_food_measurements(
+        self,
+    ) -> List[FoodMeasurementEntity]:
+        """Returns a list of valid food measurements."""
+        return [
+            measurement
+            for measurement in self.food_measurements
+            if measurement.food.scale_id is not None
+        ]
+
     def to_beautiful_dict(
         self,
         storage_service: Optional[
@@ -120,7 +121,7 @@ class MealEntity(BaseEntity):
             measurement.to_beautiful_dict(
                 storage_service=storage_service
             )
-            for measurement in self.food_measurements
+            for measurement in self.valid_food_measurements
         ]
 
         data.update(
@@ -141,12 +142,27 @@ class MealEntity(BaseEntity):
         if self.finished:
             raise MealAlreadyFinishedException()
 
-        self.food_measurements.append(food_measurement)
+        create = True
+
+        # Verify if the food measurement already exists
+        for existing_measurement in self.food_measurements:
+            if (
+                existing_measurement.food_id
+                == food_measurement.food_id
+            ):
+                existing_measurement.weight = (
+                    food_measurement.weight
+                )
+                create = False
+
+        if create:
+            self.food_measurements.append(food_measurement)
         self.final_price = self.recalculate_final_price()
 
 
 def meal_model_factory(
     user_id: int,
+    plate_identifier: str,
     final_price: float = 0,
     finished: bool = False,
     created_at: datetime = datetime.now(),
@@ -156,6 +172,7 @@ def meal_model_factory(
         id=id,
         created_at=created_at,
         user_id=user_id,
+        plate_identifier=plate_identifier,
         final_price=final_price,
         finished=finished,
     )

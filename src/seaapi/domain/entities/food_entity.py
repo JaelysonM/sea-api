@@ -46,6 +46,7 @@ class FoodEntity(BaseEntity):
             "carbs",
             "fat",
             "calories",
+            "scale_id",
         ]
         composite_field = None
         active_field = None

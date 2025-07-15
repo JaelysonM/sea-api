@@ -56,4 +56,4 @@ class FoodPaginationData(PaginationData):
 class FoodPaginationParams(PaginationParams):
     name: Optional[str]
     description: Optional[str]
-    scale_id: FilterValue[int]
+    scale_id: Optional[FilterValue[int]]

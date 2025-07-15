@@ -14,11 +14,10 @@ from src.seaapi.domain.ports.use_cases.meals import (
 from src.seaapi.config.containers import Container
 from src.seaapi.domain.dtos.mics import (
     SuccessResponse,
-    SuccessWithIdResponse,
 )
 from src.seaapi.domain.dtos.meals import (
-    MealCreateInputDto,
     MealOutputDto,
+    MealFinishInputDto,
     MealPaginationData,
     MealPaginationParams,
     FoodMeasurementCreateInputDto,
@@ -36,41 +35,6 @@ from src.seaapi.adapters.entrypoints.api.shared.permissions import (
 
 router = APIRouter()
 auth_scheme = HTTPBearer()
-
-
-@router.post(
-    "/initialize",
-    response_model=SuccessWithIdResponse,
-    status_code=201,
-    dependencies=[
-        Depends(
-            PermissionsDependency(
-                And(
-                    [
-                        IsAuthenticated(),
-                        Or(
-                            [
-                                IsAdministrator(),
-                                HasObjectCreatePermission(
-                                    resource="meal"
-                                ),
-                            ]
-                        ),
-                    ]
-                )
-            )
-        ),
-        Depends(auth_scheme),
-    ],
-)
-@inject
-def initialize_meal(
-    meal: MealCreateInputDto,
-    meal_service: MealServiceInterface = Depends(
-        Provide[Container.meal_service]
-    ),
-):
-    return meal_service.initialize_meal(meal)
 
 
 @router.get(
@@ -181,7 +145,7 @@ def add_meal_food_measurement(
 
 
 @router.post(
-    "/{id}/finish",
+    "/{plate_identifier}/finish",
     response_model=SuccessResponse,
     dependencies=[
         Depends(
@@ -206,9 +170,9 @@ def add_meal_food_measurement(
 )
 @inject
 def finish_meal(
-    id: int,
+    finish_meal: MealFinishInputDto,
     meal_service: MealServiceInterface = Depends(
         Provide[Container.meal_service]
     ),
 ):
-    return meal_service.finish_meal(id)
+    return meal_service.finish_meal(finish_meal)

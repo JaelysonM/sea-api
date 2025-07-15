@@ -13,7 +13,6 @@ from src.seaapi.domain.ports.services.storage import (
 @dataclass
 class FoodMeasurementEntity(BaseEntity):
     id: int
-    meal_id: int
     food_id: int
     weight: float
 
@@ -34,6 +33,30 @@ class FoodMeasurementEntity(BaseEntity):
         active_field = None
         joins = []
 
+    def per_hundred_grams_calories(self) -> float:
+        """Returns the calories per 100 grams of the food."""
+        if self.food:
+            return self.food.calories * (self.weight / 100)
+        return 0.0
+
+    def per_hundred_grams_carbs(self) -> float:
+        """Returns the carbs per 100 grams of the food."""
+        if self.food:
+            return self.food.carbs * (self.weight / 100)
+        return 0.0
+
+    def per_hundred_grams_fat(self) -> float:
+        """Returns the fat per 100 grams of the food."""
+        if self.food:
+            return self.food.fat * (self.weight / 100)
+        return 0.0
+
+    def per_hundred_grams_protein(self) -> float:
+        """Returns the protein per 100 grams of the food."""
+        if self.food:
+            return self.food.protein * (self.weight / 100)
+        return 0.0
+
     def to_beautiful_dict(
         self, storage_service: StorageServiceInterface
     ) -> dict:
@@ -48,9 +71,8 @@ class FoodMeasurementEntity(BaseEntity):
 def food_measurement_model_factory(
     food_id: int,
     weight: float,
-    meal_id: Optional[int] = None,
     id: Optional[int] = None,
 ) -> FoodMeasurementEntity:
     return FoodMeasurementEntity(
-        id=id, food_id=food_id, weight=weight, meal_id=None
+        id=id, food_id=food_id, weight=weight
     )

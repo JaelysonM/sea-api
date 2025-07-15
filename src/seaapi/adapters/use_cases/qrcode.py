@@ -52,7 +52,9 @@ class QRCodeAuthService(QRCodeServiceInterface):
     def _get_qrcode_expiration(self) -> datetime:
         return datetime.now() + timedelta(
             minutes=getattr(
-                settings, "QRCODE_TOKEN_EXPIRE_MINUTES", 15
+                settings,
+                "QRCODE_TOKEN_EXPIRE_MINUTES",
+                20000000,
             )
         )
 

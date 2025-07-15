@@ -21,9 +21,11 @@ from src.seaapi.domain.entities.user_entity import (
 )
 from src.seaapi.domain.dtos.meals import (
     MealOutputDto,
+    MealCreateInputDto,
     MealPaginationData,
     MealPaginationParams,
 )
+from src.seaapi.domain.dtos.mics import SuccessResponse
 from src.seaapi.adapters.entrypoints.api.shared.permissions import (
     PermissionsDependency,
     And,
@@ -108,3 +110,32 @@ def get_user_meal(
     return meal_service.get_user_meal(
         user_id=user_id, id_=id
     )
+
+
+@router.post(
+    "/initialize",
+    response_model=SuccessResponse,
+    status_code=201,
+    dependencies=[
+        Depends(
+            PermissionsDependency(
+                And(
+                    [
+                        IsAuthenticated(),
+                    ]
+                )
+            )
+        ),
+        Depends(auth_scheme),
+    ],
+)
+@inject
+def initialize_meal(
+    meal: MealCreateInputDto,
+    meal_service: MealServiceInterface = Depends(
+        Provide[Container.meal_service]
+    ),
+    user: UserEntity = Depends(get_user),
+):
+    user_id = user.id if user else None
+    return meal_service.initialize_meal(meal, user_id)

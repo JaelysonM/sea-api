@@ -13,11 +13,11 @@ from src.seaapi.domain.ports.services.storage import (
 from src.seaapi.domain.dtos.meals import (
     MealCreateInputDto,
     MealOutputDto,
+    MealFinishInputDto,
     FoodMeasurementCreateInputDto,
 )
 from src.seaapi.domain.dtos.mics import (
     SuccessResponse,
-    SuccessWithIdResponse,
     PaginationParams,
     PaginationData,
     PaginationOptions,
@@ -39,6 +39,7 @@ from src.seaapi.domain.ports.use_cases.meals import (
 )
 from src.seaapi.domain.ports.shared.exceptions import (
     MealAlreadyInProgressException,
+    PlateAlreadyAttachedToMealException,
     EntityNotFoundOrDeletedException,
     NoActiveMealException,
 )
@@ -63,19 +64,21 @@ class MealService(MealServiceInterface):
         self.storage_service = storage_service
 
     def _initialize_meal(
-        self, meal: MealCreateInputDto
+        self, meal: MealCreateInputDto, user_id: int
     ) -> SuccessResponse:
 
         with self.uow:
-
-            user_id = meal.user_identifier
-
             check_or_get_entity_if_exists(
                 id_=user_id,
                 repository="users",
                 uow=self.user_uow,
                 entity_class=UserEntity,
             )
+
+            if self.uow.meals.exists_meal_by_plate(
+                plate_identifier=meal.plate_identifier
+            ):
+                raise PlateAlreadyAttachedToMealException()
 
             if self.uow.meals.exists_non_finished_meal(
                 user_id=user_id
@@ -84,33 +87,40 @@ class MealService(MealServiceInterface):
 
             new_meal = meal_model_factory(
                 user_id=user_id,
+                plate_identifier=meal.plate_identifier,
             )
 
             self.uow.meals.create(new_meal)
 
             self.uow.commit()
 
-            reference_id = new_meal.id
-
-            return SuccessWithIdResponse(
+            return SuccessResponse(
                 message="Refeição criada com sucesso!",
                 code="meal_registered",
                 status_code=201,
-                reference_id=reference_id,
             )
 
     def _add_meal_food_measurement(
         self,
-        id: int,
         food_measurement: FoodMeasurementCreateInputDto,
     ) -> SuccessResponse:
         with self.uow:
-            existing_meal = check_or_get_entity_if_exists(
-                id_=id,
-                repository=self.uow.meals,
-                entity_class=MealEntity,
+
+            plate_identifier = (
+                food_measurement.plate_identifier
             )
 
+            existing_meal = (
+                self.uow.meals.find_meal_by_plate(
+                    plate_identifier=plate_identifier
+                )
+            )
+            if not existing_meal:
+                raise EntityNotFoundOrDeletedException(
+                    entity=MealEntity,
+                    identifier="com o identificador do prato",
+                    id=plate_identifier,
+                )
             with self.food_uow:
                 serial = food_measurement.serial
                 food_entity = self.food_uow.foods.find_food_by_scale_serial(
@@ -129,6 +139,7 @@ class MealService(MealServiceInterface):
                         weight=food_measurement.weight,
                     )
                 )
+
                 existing_meal.add_food_measurement(
                     food_measurement_entity
                 )
@@ -186,14 +197,22 @@ class MealService(MealServiceInterface):
 
     def _finish_meal(
         self,
-        id_: int,
+        finish_meal: MealFinishInputDto,
     ) -> SuccessResponse:
         with self.uow:
-            existing_meal = check_or_get_entity_if_exists(
-                id_=id_,
-                repository=self.uow.meals,
-                entity_class=MealEntity,
+            plate_identifier = finish_meal.plate_identifier
+            existing_meal = (
+                self.uow.meals.find_meal_by_plate(
+                    plate_identifier=plate_identifier
+                )
             )
+
+            if not existing_meal:
+                raise EntityNotFoundOrDeletedException(
+                    entity=MealEntity,
+                    identifier="com o identificador do prato",
+                    id=plate_identifier,
+                )
             existing_meal.finish()
 
             self.uow.commit()

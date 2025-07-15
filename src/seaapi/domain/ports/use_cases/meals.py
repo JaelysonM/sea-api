@@ -6,6 +6,7 @@ from src.seaapi.domain.entities import (
 )
 from src.seaapi.domain.dtos.meals import (
     MealCreateInputDto,
+    MealFinishInputDto,
     FoodMeasurementCreateInputDto,
     MealOutputDto,
 )
@@ -18,9 +19,9 @@ from src.seaapi.domain.dtos.mics import (
 
 class MealServiceInterface(abc.ABC):
     def initialize_meal(
-        self, meal: MealCreateInputDto
+        self, meal: MealCreateInputDto, user_id: int
     ) -> SuccessResponse:
-        return self._initialize_meal(meal)
+        return self._initialize_meal(meal, user_id)
 
     def add_meal_food_measurement(
         self,
@@ -67,13 +68,13 @@ class MealServiceInterface(abc.ABC):
 
     def finish_meal(
         self,
-        id_: int,
+        finish_meal: MealFinishInputDto,
     ) -> SuccessResponse:
-        return self._finish_meal(id_)
+        return self._finish_meal(finish_meal)
 
     @abc.abstractmethod
     def _initialize_meal(
-        self, meal: MealCreateInputDto
+        self, meal: MealCreateInputDto, user_id: int
     ) -> SuccessResponse:
         raise NotImplementedError
 
@@ -123,6 +124,6 @@ class MealServiceInterface(abc.ABC):
     @abc.abstractmethod
     def _finish_meal(
         self,
-        id_: int,
+        finish_meal: MealFinishInputDto,
     ) -> SuccessResponse:
         raise NotImplementedError

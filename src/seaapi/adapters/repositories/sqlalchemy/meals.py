@@ -38,3 +38,16 @@ class MealSqlAlchemyRepository(
             )
             .first()
         )
+
+    def _find_meal_by_plate(
+        self, plate_identifier: str
+    ) -> Optional[MealEntity]:
+        return (
+            self.session.query(MealEntity)
+            .filter(
+                MealEntity.plate_identifier
+                == plate_identifier,
+                MealEntity.finished.is_(False),
+            )
+            .first()
+        )

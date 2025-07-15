@@ -314,6 +314,20 @@ class MealAlreadyInProgressException(CustomException):
         )
 
 
+class PlateAlreadyAttachedToMealException(CustomException):
+    def __init__(
+        self,
+        detail: str = "O prato já está vinculado a uma refeição.",
+        status_code: int = 400,
+        error_code: str = "plate_already_attached_to_meal",
+    ):
+        super().__init__(
+            detail=detail,
+            status_code=status_code,
+            error_code=error_code,
+        )
+
+
 class MealAlreadyFinishedException(CustomException):
     def __init__(
         self,

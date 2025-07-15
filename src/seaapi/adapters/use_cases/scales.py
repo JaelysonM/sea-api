@@ -13,9 +13,6 @@ from src.seaapi.domain.dtos.mics import (
     PaginationData,
     PaginationOptions,
 )
-from src.seaapi.domain.ports.services.storage import (
-    StorageServiceInterface,
-)
 from src.seaapi.domain.entities.scale_entity import (
     scale_model_factory,
 )
@@ -39,12 +36,8 @@ class ScaleService(ScaleServiceInterface):
     def __init__(
         self,
         uow: ScaleUnitOfWorkInterface,
-        scale_uow: ScaleUnitOfWorkInterface,
-        storage_service: StorageServiceInterface,
     ):
         self.uow = uow
-        self.scale_uow = scale_uow
-        self.storage_service = storage_service
 
     def _create(
         self, scale: ScaleCreateInputDto

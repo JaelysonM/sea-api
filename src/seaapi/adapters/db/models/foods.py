@@ -106,6 +106,11 @@ class FoodsTables(TablesRegistration):
                 nullable=False,
             ),
             Column(
+                "plate_identifier",
+                String(255),
+                nullable=False,
+            ),
+            Column(
                 "final_price",
                 Float,
                 nullable=False,
@@ -146,7 +151,6 @@ class FoodsTables(TablesRegistration):
         )
 
     def register(self):
-
         self.mapper_registry.map_imperatively(
             ScaleEntity, self.scale
         )
@@ -174,6 +178,7 @@ class FoodsTables(TablesRegistration):
                 "food": relationship(
                     FoodEntity,
                     lazy="joined",
+                    viewonly=True,
                 )
             },
         )

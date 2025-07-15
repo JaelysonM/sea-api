@@ -13,6 +13,7 @@ from src.seaapi.domain.dtos.foods import (
 class FoodMeasurementCreateInputDto(BaseModel):
     serial: str
     weight: float
+    plate_identifier: str
 
 
 class FoodMeasurementOutputDto(BaseModel):
@@ -22,7 +23,11 @@ class FoodMeasurementOutputDto(BaseModel):
 
 
 class MealCreateInputDto(BaseModel):
-    user_identifier: int
+    plate_identifier: str
+
+
+class MealFinishInputDto(BaseModel):
+    plate_identifier: str
 
 
 class MealOutputDto(BaseModel):
