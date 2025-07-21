@@ -60,7 +60,6 @@ class MessagingWorker:
         logger.info("Iniciando Messaging Worker...")
 
         try:
-            # Criar evento de shutdown no loop correto
             self.shutdown_event = asyncio.Event()
 
             self.event_bus = self.container.event_bus()
@@ -74,7 +73,6 @@ class MessagingWorker:
                 "✅ Messaging Worker iniciado com sucesso!"
             )
 
-            # Iniciar consumo em background
             consume_task = asyncio.create_task(
                 self.event_bus.start_consuming()
             )
@@ -107,7 +105,6 @@ class MessagingWorker:
             f"Recebido sinal {signum}. Parando worker..."
         )
         if self.shutdown_event:
-            # Usar call_soon_threadsafe para ser thread-safe
             loop = asyncio.get_event_loop()
             loop.call_soon_threadsafe(
                 self.shutdown_event.set
@@ -117,7 +114,6 @@ class MessagingWorker:
 async def main():
     worker = MessagingWorker()
 
-    # Configurar handlers de sinal
     signal.signal(signal.SIGINT, worker.handle_signal)
     signal.signal(signal.SIGTERM, worker.handle_signal)
 

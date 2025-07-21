@@ -13,15 +13,12 @@ logger = logging.getLogger(__name__)
 
 
 class BaseMessageHandler(MessageHandlerInterface):
-    """Handler base para processamento de mensagens"""
 
     def __init__(self, container: Container):
         self.container = container
 
     async def handle(self, message: Message) -> None:
-        """Processa uma mensagem"""
         try:
-            # Gera message_id automaticamente se não estiver presente
             if not message.message_id:
                 message.message_id = str(uuid.uuid4())
 
@@ -50,11 +47,6 @@ class BaseMessageHandler(MessageHandlerInterface):
         logger.error(
             f"Erro no handler {self.__class__.__name__}: {error}"
         )
-        # Aqui você pode implementar lógica de retry, dead letter queue, etc.
-        # Aqui você pode implementar dead letter queue, retry, etc.
         logger.error(
             f"Erro não tratado para mensagem {message.message_id}: {error}"
         )
-
-        # Pode publicar um evento de erro
-        # await self.publish_error_event(message, error)

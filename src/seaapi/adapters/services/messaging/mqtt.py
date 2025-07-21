@@ -153,7 +153,6 @@ class MQTTConsumer(MessageConsumerInterface):
         self.handlers: Dict[
             str, MessageHandlerInterface
         ] = {}
-        # captura o loop principal do asyncio
         self._loop = asyncio.get_event_loop()
         self._setup_client()
 
