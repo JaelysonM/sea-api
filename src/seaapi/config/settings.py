@@ -102,6 +102,9 @@ class Settings:
     MQTT_TOPIC_PREFIX = os.getenv(
         "MQTT_TOPIC_PREFIX", "sea"
     )
+    MQTT_USE_TLS = (
+        os.getenv("MQTT_USE_TLS", "false").lower() == "true"
+    )
 
 
 settings = Settings()
