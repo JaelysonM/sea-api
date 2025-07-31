@@ -47,7 +47,6 @@ services:
     environment:
       - MQTT_HOST=mqtt
       - MQTT_PORT=1883
-      - ENABLE_MESSAGING=true
     depends_on:
       - db
       - mqtt
@@ -63,7 +62,6 @@ services:
     environment:
       - MQTT_HOST=mqtt
       - MQTT_PORT=1883
-      - ENABLE_MESSAGING=true
     depends_on:
       - db
       - mqtt

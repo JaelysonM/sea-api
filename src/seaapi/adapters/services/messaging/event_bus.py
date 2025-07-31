@@ -1,4 +1,5 @@
 import logging
+import json
 from typing import Dict, Any
 
 from src.seaapi.domain.ports.services.messaging import (
@@ -39,15 +40,30 @@ class EventBus(EventBusInterface):
             )
             return True
 
+        # Garantir que o publisher esteja conectado antes de publicar
+        if not self.publisher.connected:
+            try:
+                await self.publisher.connect()
+            except Exception as e:
+                logger.error(
+                    f"Erro ao conectar publisher: {e}"
+                )
+                return False
+
         try:
             topic = self._get_topic_for_event(event_type)
 
+            retain = data.pop(
+                "retain", settings.MQTT_RETAIN
+            )
+            if len(data) == 0:
+                data = ""
+            else:
+                data = json.dumps(data)
             message = Message(
                 topic=topic,
-                payload={
-                    "event_type": event_type,
-                    "data": data,
-                },
+                payload=data,
+                retain=retain,
             )
 
             return await self.publisher.publish(message)

@@ -13,6 +13,7 @@ class Message:
     correlation_id: Optional[str] = None
     timestamp: Optional[str] = None
     headers: Optional[Dict[str, Any]] = None
+    retain: Optional[bool] = None
 
     def __post_init__(self):
         if self.timestamp is None:

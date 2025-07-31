@@ -10,7 +10,6 @@ class HandlerRegistry:
 
     @classmethod
     def register(cls, event_type: str):
-
         def decorator(
             handler_class: Type[BaseMessageHandler],
         ):

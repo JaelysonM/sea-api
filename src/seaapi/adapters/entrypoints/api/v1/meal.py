@@ -108,7 +108,7 @@ def get_meal(
 
 
 @router.post(
-    "/{id}/measurements",
+    "/measurements",
     response_model=SuccessResponse,
     dependencies=[
         Depends(
@@ -133,14 +133,13 @@ def get_meal(
 )
 @inject
 def add_meal_food_measurement(
-    id: int,
     food_measurement: FoodMeasurementCreateInputDto,
     meal_service: MealServiceInterface = Depends(
         Provide[Container.meal_service]
     ),
 ):
     return meal_service.add_meal_food_measurement(
-        id=id, food_measurement=food_measurement
+        food_measurement=food_measurement
     )
 
 

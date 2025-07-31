@@ -45,6 +45,7 @@ class MealEntity(BaseEntity):
         composite_field = "user_id"
         active_field = None
         joins = []
+        masculine = False
 
     @property
     def total_calories(self) -> float:

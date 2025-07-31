@@ -2,7 +2,6 @@ import asyncio
 import json
 import logging
 from typing import Dict
-from datetime import datetime
 import uuid
 
 import paho.mqtt.client as mqtt
@@ -65,7 +64,7 @@ class MQTTPublisher(MessagePublisherInterface):
         logger.info("MQTT Publisher desconectado")
 
     def _on_publish(
-        self, client, userdata, mid, rc, properties=None
+        self, client, userdata, mid, properties=None
     ):
         logger.debug(f"Mensagem publicada com ID: {mid}")
 
@@ -102,29 +101,22 @@ class MQTTPublisher(MessagePublisherInterface):
 
     async def publish(self, message: Message) -> bool:
         if not self.connected:
-            logger.error(
-                "MQTT Publisher não está conectado"
+            logger.warning(
+                "MQTT Publisher desconectado. Tentando reconectar..."
             )
-            return False
+            try:
+                await self.connect()
+            except Exception as e:
+                logger.error(f"Falha na reconexão: {e}")
+                return False
 
         try:
-            payload = {
-                "data": message.payload,
-                "message_id": message.message_id
-                or str(uuid.uuid4()),
-                "correlation_id": message.correlation_id,
-                "timestamp": message.timestamp
-                or datetime.utcnow().isoformat(),
-                "headers": message.headers or {},
-            }
-
-            json_payload = json.dumps(payload)
-
             result = self.client.publish(
                 topic=message.topic,
-                payload=json_payload,
+                payload=message.payload,
                 qos=settings.MQTT_QOS,
-                retain=settings.MQTT_RETAIN,
+                retain=message.retain
+                or settings.MQTT_RETAIN,
             )
 
             if result.rc == mqtt.MQTT_ERR_SUCCESS:
@@ -153,7 +145,6 @@ class MQTTConsumer(MessageConsumerInterface):
         self.handlers: Dict[
             str, MessageHandlerInterface
         ] = {}
-        self._loop = asyncio.get_event_loop()
         self._setup_client()
 
     def _setup_client(self):
@@ -218,8 +209,14 @@ class MQTTConsumer(MessageConsumerInterface):
 
             handler = self.handlers.get(topic)
             if handler:
+                try:
+                    loop = asyncio.get_running_loop()
+                except RuntimeError:
+                    loop = asyncio.new_event_loop()
+                    asyncio.set_event_loop(loop)
+
                 future = asyncio.run_coroutine_threadsafe(
-                    handler.handle(message), self._loop
+                    handler.handle(message), loop
                 )
                 future.add_done_callback(
                     lambda f: logger.error(

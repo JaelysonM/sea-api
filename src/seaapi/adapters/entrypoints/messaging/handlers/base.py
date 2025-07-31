@@ -13,7 +13,6 @@ logger = logging.getLogger(__name__)
 
 
 class BaseMessageHandler(MessageHandlerInterface):
-
     def __init__(self, container: Container):
         self.container = container
 

@@ -39,7 +39,6 @@ from src.seaapi.domain.ports.use_cases.meals import (
 )
 from src.seaapi.domain.ports.shared.exceptions import (
     MealAlreadyInProgressException,
-    PlateAlreadyAttachedToMealException,
     EntityNotFoundOrDeletedException,
     NoActiveMealException,
 )
@@ -78,7 +77,11 @@ class MealService(MealServiceInterface):
             if self.uow.meals.exists_meal_by_plate(
                 plate_identifier=meal.plate_identifier
             ):
-                raise PlateAlreadyAttachedToMealException()
+                self._finish_meal(
+                    finish_meal=MealFinishInputDto(
+                        plate_identifier=meal.plate_identifier
+                    )
+                )
 
             if self.uow.meals.exists_non_finished_meal(
                 user_id=user_id
@@ -139,11 +142,11 @@ class MealService(MealServiceInterface):
                         weight=food_measurement.weight,
                     )
                 )
+                food_measurement_entity.food = food_entity
 
                 existing_meal.add_food_measurement(
                     food_measurement_entity
                 )
-
                 self.uow.commit()
 
             return SuccessResponse(

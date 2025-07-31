@@ -25,11 +25,10 @@ class MealServiceInterface(abc.ABC):
 
     def add_meal_food_measurement(
         self,
-        id: int,
         food_measurement: FoodMeasurementCreateInputDto,
     ) -> SuccessResponse:
         return self._add_meal_food_measurement(
-            id, food_measurement
+            food_measurement
         )
 
     def get_all(
@@ -81,7 +80,6 @@ class MealServiceInterface(abc.ABC):
     @abc.abstractmethod
     def _add_meal_food_measurement(
         self,
-        id: int,
         food_measurement: FoodMeasurementCreateInputDto,
     ) -> SuccessResponse:
         raise NotImplementedError

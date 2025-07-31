@@ -135,15 +135,7 @@ class Container(containers.DeclarativeContainer):
         PermissionService, uow=permission_uow
     )
 
-    food_service = providers.Factory(
-        FoodService,
-        uow=food_uow,
-        scale_uow=scale_uow,
-        storage_service=storage_service,
-    )
-
     # Messaging providers (definir antes dos serviços que dependem deles)
-    # Messaging providers
     mqtt_publisher = providers.Factory(MQTTPublisher)
 
     mqtt_consumer = providers.Factory(
@@ -154,6 +146,14 @@ class Container(containers.DeclarativeContainer):
         EventBus,
         publisher=mqtt_publisher,
         consumer=mqtt_consumer,
+    )
+
+    food_service = providers.Factory(
+        FoodService,
+        uow=food_uow,
+        scale_uow=scale_uow,
+        storage_service=storage_service,
+        event_bus=event_bus,
     )
 
     user_service = providers.Factory(

@@ -31,9 +31,7 @@ class MealEventHandler(BaseMessageHandler):
             )
             return
 
-        if event_type == "meal.finished":
-            await self._handle_finished(payload)
-        elif event_type == "meal.add_food":
+        if event_type == "meal.add_food":
             await self._handle_add_food(payload)
         else:
             logger.warning(
@@ -60,20 +58,22 @@ class MealEventHandler(BaseMessageHandler):
     async def _handle_add_food(self, payload: dict) -> None:
         serial = payload.get("serial")
         weight = payload.get("weight")
-        meal_id = payload.get("meal_id")
-        if not (serial and weight and meal_id):
+        plate_identifier = payload.get("plate_identifier")
+
+        if not (serial and weight and plate_identifier):
             logger.error(
                 "Dados insuficientes para 'meal.add_food'"
             )
             return
 
         logger.info(
-            f"Adicionando alimento à refeição: {meal_id}"
+            f"Adicionando pensagem de alimento: "
+            f"plate={plate_identifier}, serial={serial}, weight={weight}"
         )
         self.container.meal_service().add_meal_food_measurement(
-            id=meal_id,
             food_measurement=FoodMeasurementCreateInputDto(
                 serial=serial,
                 weight=weight,
+                plate_identifier=plate_identifier,
             ),
         )
