@@ -324,13 +324,3 @@ class MQTTConsumer(MessageConsumerInterface):
     async def stop_consuming(self) -> None:
         logger.info("Parando consumo de mensagens MQTT...")
         await self.disconnect()
-            while self.connected:
-                await asyncio.sleep(1)
-        except KeyboardInterrupt:
-            logger.info("Interrompido pelo usuário")
-        finally:
-            await self.stop_consuming()
-
-    async def stop_consuming(self) -> None:
-        logger.info("Parando consumo de mensagens MQTT...")
-        await self.disconnect()
