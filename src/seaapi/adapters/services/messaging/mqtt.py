@@ -29,6 +29,10 @@ class MQTTPublisher(MessagePublisherInterface):
     def _setup_client(self):
         self.client = mqtt.Client(client_id=self.client_id)
 
+        # Ativa TLS se configurado (sem parâmetros)
+        if getattr(settings, "MQTT_USE_TLS", False):
+            self.client.tls_set()
+
         if (
             settings.MQTT_USERNAME
             and settings.MQTT_PASSWORD
@@ -149,6 +153,10 @@ class MQTTConsumer(MessageConsumerInterface):
 
     def _setup_client(self):
         self.client = mqtt.Client(client_id=self.client_id)
+
+        # Ativa TLS se configurado (sem parâmetros)
+        if getattr(settings, "MQTT_USE_TLS", False):
+            self.client.tls_set()
 
         if (
             settings.MQTT_USERNAME
@@ -306,6 +314,16 @@ class MQTTConsumer(MessageConsumerInterface):
         )
 
         try:
+            while self.connected:
+                await asyncio.sleep(1)
+        except KeyboardInterrupt:
+            logger.info("Interrompido pelo usuário")
+        finally:
+            await self.stop_consuming()
+
+    async def stop_consuming(self) -> None:
+        logger.info("Parando consumo de mensagens MQTT...")
+        await self.disconnect()
             while self.connected:
                 await asyncio.sleep(1)
         except KeyboardInterrupt:
