@@ -44,4 +44,4 @@ bandit= "==1.7.9"
 pytype="==2024.4.11"
 
 [requires]
-python_version = "3.8"
+python_version = "3.9"
