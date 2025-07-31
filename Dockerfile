@@ -92,4 +92,4 @@ EXPOSE 5000
 
 # Define the entrypoint and default command
 ENTRYPOINT ["/usr/app/entrypoint.sh"]
-CMD ["python3", "-m", "uvicorn", "src.sicriaapi.adapters.entrypoints.application:app", "--reload", "--host", "0.0.0.0", "--port", "5000", "--workers", "6"]
+CMD ["python3", "-m", "uvicorn", "src.seaapi.adapters.entrypoints.application:app", "--reload", "--host", "0.0.0.0", "--port", "5000", "--workers", "6"]
