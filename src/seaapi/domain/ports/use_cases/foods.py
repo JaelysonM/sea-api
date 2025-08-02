@@ -37,9 +37,9 @@ class FoodServiceInterface(abc.ABC):
         return self._get_food(id_, entity)
 
     def update_food(
-        self, id_: int, food: FoodUpdateInputDto
+        self, id_: int, food: FoodUpdateInputDto, scheduler
     ) -> SuccessResponse:
-        return self._update_food(id_, food)
+        return self._update_food(id_, food, scheduler)
 
     def delete_food(
         self,
@@ -61,7 +61,7 @@ class FoodServiceInterface(abc.ABC):
 
     @abc.abstractmethod
     def _update_food(
-        self, id_: int, food: FoodUpdateInputDto
+        self, id_: int, food: FoodUpdateInputDto, scheduler
     ) -> SuccessResponse:
         raise NotImplementedError
 

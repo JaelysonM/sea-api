@@ -1,6 +1,5 @@
 from typing import Union, Optional
 from datetime import datetime
-import asyncio
 import logging
 from contextlib import suppress
 from src.seaapi.domain.entities import (
@@ -67,31 +66,22 @@ class FoodService(FoodServiceInterface):
         coro,
         background_tasks: Optional[object] = None,
     ):
-        if background_tasks and hasattr(
-            background_tasks, "add_task"
-        ):
+        """
+        Agenda publicação de evento usando APENAS BackgroundTasks.
+        Se não houver BackgroundTasks disponível, loga aviso.
+        """
+        if background_tasks and hasattr(background_tasks, "add_task"):
             try:
-                background_tasks.add_task(
-                    self._run_async_event, coro
-                )
+                background_tasks.add_task(self._run_async_event, coro)
+                logger.info("Evento agendado via BackgroundTasks")
                 return
             except Exception as e:
-                logger.warning(
-                    f"Erro ao usar BackgroundTasks: {e}"
-                )
-
-        with suppress(RuntimeError):
-            loop = asyncio.get_running_loop()
-            task = loop.create_task(coro)
-            task.add_done_callback(
-                self._handle_event_task_result
-            )
-            return
-
-        try:
-            asyncio.run(coro)
-        except Exception as e:
-            logger.error(f"Erro ao executar evento: {e}")
+                logger.warning(f"Erro ao usar BackgroundTasks: {e}")
+        
+        # Sem BackgroundTasks disponível - apenas logar
+        logger.warning(
+            "BackgroundTasks não disponível - evento não será publicado"
+        )
 
     async def _run_async_event(self, coro):
         try:
@@ -100,13 +90,6 @@ class FoodService(FoodServiceInterface):
             logger.error(
                 f"Erro na execução de evento assíncrono: {e}"
             )
-
-    def _handle_event_task_result(self, task):
-        with suppress(Exception):
-            if task.exception():
-                logger.error(
-                    f"Erro na publicação de evento: {task.exception()}"
-                )
 
     async def _publish_food_scale_event(
         self,
@@ -223,6 +206,7 @@ class FoodService(FoodServiceInterface):
         self,
         id_: int,
         food: FoodUpdateInputDto,
+        scheduler,
     ) -> SuccessResponse:
         with self.uow:
             existing_food = check_or_get_entity_if_exists(
@@ -341,7 +325,7 @@ class FoodService(FoodServiceInterface):
             self.uow.commit()
 
             for event_coro in events_scheduled:
-                self._schedule_event_publication(event_coro)
+                self._schedule_event_publication(event_coro, scheduler)
 
             return SuccessResponse(
                 message="Dados do alimento atualizados com sucesso!",

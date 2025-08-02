@@ -40,7 +40,6 @@ class EventBus(EventBusInterface):
             )
             return True
 
-        # Garantir que o publisher esteja conectado antes de publicar
         if not self.publisher.connected:
             try:
                 await self.publisher.connect()

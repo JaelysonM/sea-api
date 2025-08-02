@@ -5,6 +5,7 @@ from dependency_injector.wiring import (
 )
 from fastapi import (
     APIRouter,
+    BackgroundTasks,
     Depends,
     Form,
     UploadFile,
@@ -171,6 +172,7 @@ def get_food(
 @inject
 def edit_food(
     id: int,
+    background_tasks: BackgroundTasks,
     name: Optional[str] = Form(None),
     description: Optional[str] = Form(None),
     calories: Optional[float] = Form(None),
@@ -208,6 +210,7 @@ def edit_food(
     return food_service.update_food(
         id,
         FoodUpdateInputDto(**update_data),
+        background_tasks,
     )
 
 
