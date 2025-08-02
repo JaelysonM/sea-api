@@ -29,7 +29,11 @@ class MQTTPublisher(MessagePublisherInterface):
     def _setup_client(self):
         self.client = mqtt.Client(client_id=self.client_id)
 
-        # Configuração SSL/TLS mais robusta para HiveMQ Cloud
+        self._configure_ssl()
+        self._configure_auth()
+        self._configure_callbacks()
+
+    def _configure_ssl(self):
         if getattr(settings, "MQTT_USE_TLS", False):
             import ssl
 
@@ -40,31 +44,26 @@ class MQTTPublisher(MessagePublisherInterface):
             except ImportError:
                 ca_certs_path = None
 
-            # Criar contexto SSL com configurações mais específicas
             ssl_context = ssl.create_default_context(
                 ssl.Purpose.SERVER_AUTH
             )
-            ssl_context.check_hostname = False  # HiveMQ Cloud às vezes tem problemas com hostname
+            ssl_context.check_hostname = False
             ssl_context.verify_mode = ssl.CERT_REQUIRED
+            ssl_context.minimum_version = (
+                ssl.TLSVersion.TLSv1_2
+            )
 
-            # Usar certificados do sistema
             if ca_certs_path:
                 ssl_context.load_verify_locations(
                     ca_certs_path
                 )
 
-            # Configurar versões TLS permitidas (evitar versões muito antigas)
-            ssl_context.minimum_version = (
-                ssl.TLSVersion.TLSv1_2
-            )
-
-            # Configurar TLS com contexto personalizado
             self.client.tls_set_context(ssl_context)
-
             logger.info(
                 "SSL/TLS configurado para MQTT Publisher"
             )
 
+    def _configure_auth(self):
         if (
             settings.MQTT_USERNAME
             and settings.MQTT_PASSWORD
@@ -74,6 +73,7 @@ class MQTTPublisher(MessagePublisherInterface):
                 settings.MQTT_PASSWORD,
             )
 
+    def _configure_callbacks(self):
         self.client.on_connect = self._on_connect
         self.client.on_disconnect = self._on_disconnect
         self.client.on_publish = self._on_publish
@@ -84,8 +84,8 @@ class MQTTPublisher(MessagePublisherInterface):
         if rc == 0:
             self.connected = True
             logger.info(
-                "MQTT Publisher conectado: "
-                f"{settings.MQTT_BROKER_HOST}:{settings.MQTT_BROKER_PORT}"
+                f"MQTT Publisher conectado: {settings.MQTT_BROKER_HOST}"
+                f":{settings.MQTT_BROKER_PORT}"
             )
         else:
             self.connected = False
@@ -114,7 +114,6 @@ class MQTTPublisher(MessagePublisherInterface):
                     f"Tentativa de conexão MQTT {retry + 1}/{max_retries}"
                 )
 
-                # Configurar timeouts mais robustos
                 self.client.connect(
                     settings.MQTT_BROKER_HOST,
                     settings.MQTT_BROKER_PORT,
@@ -122,9 +121,8 @@ class MQTTPublisher(MessagePublisherInterface):
                 )
                 self.client.loop_start()
 
-                # Aguardar conexão com timeout maior
                 attempts = 0
-                max_attempts = 15  # Aumentado de 10 para 15
+                max_attempts = 15
                 while (
                     not self.connected
                     and attempts < max_attempts
@@ -152,12 +150,11 @@ class MQTTPublisher(MessagePublisherInterface):
                         f"Aguardando {retry_delay}s antes da próxima tentativa..."
                     )
                     await asyncio.sleep(retry_delay)
-                    retry_delay *= (
-                        1.5  # Backoff exponencial
-                    )
+                    retry_delay *= 1.5
                 else:
                     logger.error(
-                        f"Erro ao conectar MQTT Publisher após {max_retries} tentativas: {e}"
+                        f"Erro ao conectar MQTT Publisher após "
+                        f"{max_retries} tentativas: {e}"
                     )
                     raise
 
@@ -218,7 +215,13 @@ class MQTTConsumer(MessageConsumerInterface):
     def _setup_client(self):
         self.client = mqtt.Client(client_id=self.client_id)
 
-        # Configuração SSL/TLS mais robusta para HiveMQ Cloud
+        self._configure_ssl()
+        self._configure_auth()
+        self._configure_callbacks()
+
+        self._loop = asyncio.get_event_loop()
+
+    def _configure_ssl(self):
         if getattr(settings, "MQTT_USE_TLS", False):
             import ssl
 
@@ -229,31 +232,26 @@ class MQTTConsumer(MessageConsumerInterface):
             except ImportError:
                 ca_certs_path = None
 
-            # Criar contexto SSL com configurações mais específicas
             ssl_context = ssl.create_default_context(
                 ssl.Purpose.SERVER_AUTH
             )
-            ssl_context.check_hostname = False  # HiveMQ Cloud às vezes tem problemas com hostname
+            ssl_context.check_hostname = False
             ssl_context.verify_mode = ssl.CERT_REQUIRED
+            ssl_context.minimum_version = (
+                ssl.TLSVersion.TLSv1_2
+            )
 
-            # Usar certificados do sistema
             if ca_certs_path:
                 ssl_context.load_verify_locations(
                     ca_certs_path
                 )
 
-            # Configurar versões TLS permitidas (evitar versões muito antigas)
-            ssl_context.minimum_version = (
-                ssl.TLSVersion.TLSv1_2
-            )
-
-            # Configurar TLS com contexto personalizado
             self.client.tls_set_context(ssl_context)
-
             logger.info(
                 "SSL/TLS configurado para MQTT Consumer"
             )
 
+    def _configure_auth(self):
         if (
             settings.MQTT_USERNAME
             and settings.MQTT_PASSWORD
@@ -263,11 +261,10 @@ class MQTTConsumer(MessageConsumerInterface):
                 settings.MQTT_PASSWORD,
             )
 
+    def _configure_callbacks(self):
         self.client.on_connect = self._on_connect
         self.client.on_disconnect = self._on_disconnect
         self.client.on_message = self._on_message
-
-        self._loop = asyncio.get_event_loop()
 
     def _on_connect(
         self, client, userdata, flags, rc, properties=None
@@ -275,8 +272,8 @@ class MQTTConsumer(MessageConsumerInterface):
         if rc == 0:
             self.connected = True
             logger.info(
-                "MQTT Consumer conectado: "
-                f"{settings.MQTT_BROKER_HOST}:{settings.MQTT_BROKER_PORT}"
+                f"MQTT Consumer conectado: {settings.MQTT_BROKER_HOST}"
+                f":{settings.MQTT_BROKER_PORT}"
             )
 
             for topic in self.handlers.keys():

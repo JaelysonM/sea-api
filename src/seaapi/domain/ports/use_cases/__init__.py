@@ -7,3 +7,6 @@ from .users import UserServiceInterface  # noqa: F401
 from .foods import FoodServiceInterface  # noqa: F401
 from .meals import MealServiceInterface  # noqa: F401
 from .scales import ScaleServiceInterface  # noqa: F401
+from .food_events import (  # noqa: F401
+    FoodEventPublisherInterface,
+)

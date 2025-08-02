@@ -32,6 +32,7 @@ ortools = "*"
 qrcode = {extras = ["pil"], version = "*"}
 paho-mqtt = "==1.6.1"
 certifi = "*"
+aiohttp = "*"
 
 [dev-packages]
 pre-commit="==2.18.1"

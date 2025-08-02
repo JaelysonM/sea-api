@@ -14,6 +14,10 @@ from src.seaapi.domain.dtos.mics import (
     PaginationParams,
     PaginationData,
 )
+from src.seaapi.domain.dtos.nutrition import (
+    NutritionCalculateInputDto,
+    NutritionCalculateOutputDto,
+)
 
 
 class FoodServiceInterface(abc.ABC):
@@ -46,6 +50,11 @@ class FoodServiceInterface(abc.ABC):
         id_: int,
     ) -> SuccessResponse:
         return self._delete_food(id_)
+
+    async def calculate_nutrition(
+        self, food_data: NutritionCalculateInputDto
+    ) -> NutritionCalculateOutputDto:
+        return await self._calculate_nutrition(food_data)
 
     @abc.abstractmethod
     def _create(
@@ -83,4 +92,10 @@ class FoodServiceInterface(abc.ABC):
         self,
         id_: int,
     ) -> SuccessResponse:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    async def _calculate_nutrition(
+        self, food_data: NutritionCalculateInputDto
+    ) -> NutritionCalculateOutputDto:
         raise NotImplementedError

@@ -1,7 +1,6 @@
-from typing import Union, Optional
+from typing import Union
 from datetime import datetime
 import logging
-from contextlib import suppress
 from src.seaapi.domain.entities import (
     FoodEntity,
     ScaleEntity,
@@ -12,6 +11,10 @@ from src.seaapi.domain.dtos.foods import (
     FoodUpdateInputDto,
     FoodPaginationParams,
 )
+from src.seaapi.domain.dtos.nutrition import (
+    NutritionCalculateInputDto,
+    NutritionCalculateOutputDto,
+)
 from src.seaapi.domain.dtos.mics import (
     SuccessResponse,
     PaginationParams,
@@ -20,9 +23,6 @@ from src.seaapi.domain.dtos.mics import (
 )
 from src.seaapi.domain.ports.services.storage import (
     StorageServiceInterface,
-)
-from src.seaapi.domain.ports.services.messaging import (
-    EventBusInterface,
 )
 from src.seaapi.domain.entities.food_entity import (
     food_model_factory,
@@ -36,6 +36,9 @@ from src.seaapi.domain.ports.unit_of_works.scales import (
 from src.seaapi.domain.ports.use_cases.foods import (
     FoodServiceInterface,
 )
+from src.seaapi.domain.ports.services.nutrition import (
+    NutritionServiceInterface,
+)
 from src.seaapi.domain.ports.shared.exceptions import (
     NotAuthorizedException,
 )
@@ -43,6 +46,9 @@ from src.seaapi.domain.ports.shared.exceptions import (
 
 from src.seaapi.domain.shared.validators import (
     check_or_get_entity_if_exists,
+)
+from src.seaapi.adapters.use_cases.food_events import (
+    FoodEventPublisher,
 )
 
 logger = logging.getLogger(__name__)
@@ -54,120 +60,14 @@ class FoodService(FoodServiceInterface):
         uow: FoodUnitOfWorkInterface,
         scale_uow: ScaleUnitOfWorkInterface,
         storage_service: StorageServiceInterface,
-        event_bus: EventBusInterface,
+        nutrition_service: NutritionServiceInterface,
+        food_event_publisher: FoodEventPublisher,
     ):
         self.uow = uow
         self.scale_uow = scale_uow
         self.storage_service = storage_service
-        self.event_bus = event_bus
-
-    def _schedule_event_publication(
-        self,
-        coro,
-        background_tasks: Optional[object] = None,
-    ):
-        """
-        Agenda publicação de evento usando APENAS BackgroundTasks.
-        Se não houver BackgroundTasks disponível, loga aviso.
-        """
-        if background_tasks and hasattr(background_tasks, "add_task"):
-            try:
-                background_tasks.add_task(self._run_async_event, coro)
-                logger.info("Evento agendado via BackgroundTasks")
-                return
-            except Exception as e:
-                logger.warning(f"Erro ao usar BackgroundTasks: {e}")
-        
-        # Sem BackgroundTasks disponível - apenas logar
-        logger.warning(
-            "BackgroundTasks não disponível - evento não será publicado"
-        )
-
-    async def _run_async_event(self, coro):
-        try:
-            await coro
-        except Exception as e:
-            logger.error(
-                f"Erro na execução de evento assíncrono: {e}"
-            )
-
-    async def _publish_food_scale_event(
-        self,
-        event_type: str,
-        food: FoodEntity,
-    ):
-        try:
-
-            scale_entity = check_or_get_entity_if_exists(
-                id_=food.scale_id,
-                repository="scales",
-                uow=self.scale_uow,
-                entity_class=ScaleEntity,
-            )
-
-            scale_serial = (
-                scale_entity.serial
-                if scale_entity
-                else None
-            )
-
-            if not scale_serial:
-                logger.warning(
-                    f"Serial da balança não encontrado para evento {event_type}"
-                )
-                return
-
-            await self._publish_to_scale_topic(
-                event_type, food, scale_serial
-            )
-
-        except Exception as e:
-            logger.error(
-                f"Erro ao publicar evento {event_type}: {e}"
-            )
-
-    async def _publish_food_scale_event_with_serial(
-        self,
-        event_type: str,
-        food: FoodEntity,
-        scale_serial: str,
-    ):
-        try:
-            await self._publish_to_scale_topic(
-                event_type, food, scale_serial
-            )
-        except Exception as e:
-            logger.error(
-                f"Erro ao publicar evento {event_type} com serial {scale_serial}: {e}"
-            )
-
-    async def _publish_to_scale_topic(
-        self,
-        event_type: str,
-        food: FoodEntity,
-        scale_serial: str,
-    ):
-        topic = f"foods.{scale_serial}"
-        if event_type in ["attached", "updated"]:
-            payload = {
-                "food_id": food.id,
-                "name": food.name,
-                "calories": food.calories,
-                "protein": food.protein,
-                "carbs": food.carbs,
-                "fat": food.fat,
-                "retain": True,
-            }
-
-            await self.event_bus.publish(topic, payload)
-
-        elif event_type in ["detached", "deleted"]:
-            await self.event_bus.publish(
-                topic, {"retain": True}
-            )
-            logger.info(
-                f"Evento '{event_type}' (mensagem vazia) publicado no tópico {topic}"
-            )
+        self.nutrition_service = nutrition_service
+        self.food_event_publisher = food_event_publisher
 
     def _create(
         self, food: FoodCreateInputDto
@@ -258,7 +158,10 @@ class FoodService(FoodServiceInterface):
                     and not existing_food.scale_id
                 ):
                     if previous_scale_serial:
-                        event_coro = self._publish_food_scale_event_with_serial(
+                        publisher = (
+                            self.food_event_publisher
+                        )
+                        event_coro = publisher.publish_food_scale_event_with_serial(
                             "detached",
                             existing_food,
                             previous_scale_serial,
@@ -268,10 +171,8 @@ class FoodService(FoodServiceInterface):
                     not previous_scale_id
                     and existing_food.scale_id
                 ):
-                    event_coro = (
-                        self._publish_food_scale_event(
-                            "attached", existing_food
-                        )
+                    event_coro = self.food_event_publisher.publish_food_scale_event(
+                        "attached", existing_food
                     )
                     events_scheduled.append(event_coro)
                 elif (
@@ -281,17 +182,18 @@ class FoodService(FoodServiceInterface):
                     != existing_food.scale_id
                 ):
                     if previous_scale_serial:
-                        event_coro = self._publish_food_scale_event_with_serial(
+                        publisher = (
+                            self.food_event_publisher
+                        )
+                        event_coro = publisher.publish_food_scale_event_with_serial(
                             "detached",
                             existing_food,
                             previous_scale_serial,
                         )
                         events_scheduled.append(event_coro)
 
-                    event_coro = (
-                        self._publish_food_scale_event(
-                            "attached", existing_food
-                        )
+                    event_coro = self.food_event_publisher.publish_food_scale_event(
+                        "attached", existing_food
                     )
                     events_scheduled.append(event_coro)
                 elif (
@@ -311,10 +213,8 @@ class FoodService(FoodServiceInterface):
                         and getattr(food, field) is not None
                         for field in nutritional_fields
                     ):
-                        event_coro = (
-                            self._publish_food_scale_event(
-                                "updated", existing_food
-                            )
+                        event_coro = self.food_event_publisher.publish_food_scale_event(
+                            "updated", existing_food
                         )
                         events_scheduled.append(event_coro)
             except Exception as e:
@@ -325,7 +225,9 @@ class FoodService(FoodServiceInterface):
             self.uow.commit()
 
             for event_coro in events_scheduled:
-                self._schedule_event_publication(event_coro, scheduler)
+                self.food_event_publisher.schedule_event_publication(
+                    event_coro, scheduler
+                )
 
             return SuccessResponse(
                 message="Dados do alimento atualizados com sucesso!",
@@ -418,7 +320,8 @@ class FoodService(FoodServiceInterface):
 
             event_coro = None
             if existing_food.scale_id and scale_serial:
-                event_coro = self._publish_food_scale_event_with_serial(
+                publisher = self.food_event_publisher
+                event_coro = publisher.publish_food_scale_event_with_serial(
                     "deleted",
                     existing_food,
                     scale_serial,
@@ -428,9 +331,18 @@ class FoodService(FoodServiceInterface):
             self.uow.commit()
 
             if event_coro:
-                self._schedule_event_publication(event_coro)
+                self.food_event_publisher.schedule_event_publication(
+                    event_coro
+                )
 
             return SuccessResponse(
                 message="Alimento removido com sucesso!",
                 code="food_removed",
             )
+
+    async def _calculate_nutrition(
+        self, food_data: NutritionCalculateInputDto
+    ) -> NutritionCalculateOutputDto:
+        return await self.nutrition_service.calculate_nutrition(
+            food_data
+        )

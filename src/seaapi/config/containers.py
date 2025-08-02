@@ -19,6 +19,7 @@ from src.seaapi.adapters.use_cases import (
     FoodService,
     MealService,
     ScaleService,
+    FoodEventPublisher,
 )
 from src.seaapi.adapters.use_cases.qrcode import (
     QRCodeAuthService,
@@ -48,6 +49,10 @@ from src.seaapi.adapters.services.qrcode import (
 from src.seaapi.adapters.services.storage import (
     S3StorageService,
     MinIOStorageService,
+)
+
+from src.seaapi.adapters.services.nutrition import (
+    OpenAINutritionService,
 )
 
 ENGINE = create_engine(config.get_database_uri())
@@ -149,12 +154,24 @@ class Container(containers.DeclarativeContainer):
         or None,
     )
 
+    nutrition_service = providers.Factory(
+        OpenAINutritionService,
+        api_key=settings.OPENAI_API_KEY,
+    )
+
+    food_event_publisher = providers.Factory(
+        FoodEventPublisher,
+        event_bus=event_bus,
+        scale_uow=scale_uow,
+    )
+
     food_service = providers.Factory(
         FoodService,
         uow=food_uow,
         scale_uow=scale_uow,
         storage_service=storage_service,
-        event_bus=event_bus,
+        nutrition_service=nutrition_service,
+        food_event_publisher=food_event_publisher,
     )
 
     user_service = providers.Factory(

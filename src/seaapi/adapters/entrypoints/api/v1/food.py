@@ -27,6 +27,10 @@ from src.seaapi.domain.dtos.foods import (
     FoodPaginationParams,
     FoodUpdateInputDto,
 )
+from src.seaapi.domain.dtos.nutrition import (
+    NutritionCalculateInputDto,
+    NutritionCalculateOutputDto,
+)
 from src.seaapi.adapters.entrypoints.api.shared.permissions import (
     PermissionsDependency,
     And,
@@ -246,3 +250,39 @@ def delete_food(
     ),
 ):
     return food_service.delete_food(id)
+
+
+@router.post(
+    "/calculate-nutrition",
+    response_model=NutritionCalculateOutputDto,
+    dependencies=[
+        Depends(
+            PermissionsDependency(
+                And(
+                    [
+                        IsAuthenticated(),
+                        Or(
+                            [
+                                IsAdministrator(),
+                                HasObjectCreatePermission(
+                                    resource="food"
+                                ),
+                            ]
+                        ),
+                    ]
+                )
+            )
+        ),
+        Depends(auth_scheme),
+    ],
+)
+@inject
+async def calculate_nutrition(
+    nutrition_data: NutritionCalculateInputDto,
+    food_service: FoodServiceInterface = Depends(
+        Provide[Container.food_service]
+    ),
+):
+    return await food_service.calculate_nutrition(
+        nutrition_data
+    )
