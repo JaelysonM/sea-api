@@ -144,7 +144,9 @@ class Container(containers.DeclarativeContainer):
     event_bus = providers.Factory(
         EventBus,
         publisher=mqtt_publisher,
-        consumer=settings.IS_MESSAGE_WORKER and mqtt_consumer or None,
+        consumer=settings.IS_MESSAGE_WORKER
+        and mqtt_consumer
+        or None,
     )
 
     food_service = providers.Factory(

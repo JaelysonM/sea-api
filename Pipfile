@@ -31,6 +31,7 @@ numpy = "==1.24.4"
 ortools = "*"
 qrcode = {extras = ["pil"], version = "*"}
 paho-mqtt = "==1.6.1"
+certifi = "*"
 
 [dev-packages]
 pre-commit="==2.18.1"

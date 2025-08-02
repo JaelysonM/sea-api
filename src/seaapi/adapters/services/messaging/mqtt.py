@@ -29,9 +29,41 @@ class MQTTPublisher(MessagePublisherInterface):
     def _setup_client(self):
         self.client = mqtt.Client(client_id=self.client_id)
 
-        # Ativa TLS se configurado (sem parâmetros)
+        # Configuração SSL/TLS mais robusta para HiveMQ Cloud
         if getattr(settings, "MQTT_USE_TLS", False):
-            self.client.tls_set()
+            import ssl
+
+            try:
+                import certifi
+
+                ca_certs_path = certifi.where()
+            except ImportError:
+                ca_certs_path = None
+
+            # Criar contexto SSL com configurações mais específicas
+            ssl_context = ssl.create_default_context(
+                ssl.Purpose.SERVER_AUTH
+            )
+            ssl_context.check_hostname = False  # HiveMQ Cloud às vezes tem problemas com hostname
+            ssl_context.verify_mode = ssl.CERT_REQUIRED
+
+            # Usar certificados do sistema
+            if ca_certs_path:
+                ssl_context.load_verify_locations(
+                    ca_certs_path
+                )
+
+            # Configurar versões TLS permitidas (evitar versões muito antigas)
+            ssl_context.minimum_version = (
+                ssl.TLSVersion.TLSv1_2
+            )
+
+            # Configurar TLS com contexto personalizado
+            self.client.tls_set_context(ssl_context)
+
+            logger.info(
+                "SSL/TLS configurado para MQTT Publisher"
+            )
 
         if (
             settings.MQTT_USERNAME
@@ -73,29 +105,61 @@ class MQTTPublisher(MessagePublisherInterface):
         logger.debug(f"Mensagem publicada com ID: {mid}")
 
     async def connect(self) -> None:
-        try:
-            self.client.connect(
-                settings.MQTT_BROKER_HOST,
-                settings.MQTT_BROKER_PORT,
-                settings.MQTT_KEEPALIVE,
-            )
-            self.client.loop_start()
+        max_retries = 3
+        retry_delay = 2.0
 
-            attempts = 0
-            while not self.connected and attempts < 10:
-                await asyncio.sleep(0.5)
-                attempts += 1
-
-            if not self.connected:
-                raise ConnectionError(
-                    "Não foi possível conectar ao broker MQTT"
+        for retry in range(max_retries):
+            try:
+                logger.info(
+                    f"Tentativa de conexão MQTT {retry + 1}/{max_retries}"
                 )
 
-        except Exception as e:
-            logger.error(
-                f"Erro ao conectar MQTT Publisher: {e}"
-            )
-            raise
+                # Configurar timeouts mais robustos
+                self.client.connect(
+                    settings.MQTT_BROKER_HOST,
+                    settings.MQTT_BROKER_PORT,
+                    settings.MQTT_KEEPALIVE,
+                )
+                self.client.loop_start()
+
+                # Aguardar conexão com timeout maior
+                attempts = 0
+                max_attempts = 15  # Aumentado de 10 para 15
+                while (
+                    not self.connected
+                    and attempts < max_attempts
+                ):
+                    await asyncio.sleep(0.5)
+                    attempts += 1
+
+                if self.connected:
+                    logger.info(
+                        "MQTT Publisher conectado com sucesso!"
+                    )
+                    return
+                else:
+                    raise ConnectionError(
+                        "Timeout na conexão MQTT"
+                    )
+
+            except Exception as e:
+                logger.warning(
+                    f"Tentativa {retry + 1} falhou: {e}"
+                )
+
+                if retry < max_retries - 1:
+                    logger.info(
+                        f"Aguardando {retry_delay}s antes da próxima tentativa..."
+                    )
+                    await asyncio.sleep(retry_delay)
+                    retry_delay *= (
+                        1.5  # Backoff exponencial
+                    )
+                else:
+                    logger.error(
+                        f"Erro ao conectar MQTT Publisher após {max_retries} tentativas: {e}"
+                    )
+                    raise
 
     async def disconnect(self) -> None:
         if self.client and self.connected:
@@ -154,9 +218,41 @@ class MQTTConsumer(MessageConsumerInterface):
     def _setup_client(self):
         self.client = mqtt.Client(client_id=self.client_id)
 
-        # Ativa TLS se configurado (sem parâmetros)
+        # Configuração SSL/TLS mais robusta para HiveMQ Cloud
         if getattr(settings, "MQTT_USE_TLS", False):
-            self.client.tls_set()
+            import ssl
+
+            try:
+                import certifi
+
+                ca_certs_path = certifi.where()
+            except ImportError:
+                ca_certs_path = None
+
+            # Criar contexto SSL com configurações mais específicas
+            ssl_context = ssl.create_default_context(
+                ssl.Purpose.SERVER_AUTH
+            )
+            ssl_context.check_hostname = False  # HiveMQ Cloud às vezes tem problemas com hostname
+            ssl_context.verify_mode = ssl.CERT_REQUIRED
+
+            # Usar certificados do sistema
+            if ca_certs_path:
+                ssl_context.load_verify_locations(
+                    ca_certs_path
+                )
+
+            # Configurar versões TLS permitidas (evitar versões muito antigas)
+            ssl_context.minimum_version = (
+                ssl.TLSVersion.TLSv1_2
+            )
+
+            # Configurar TLS com contexto personalizado
+            self.client.tls_set_context(ssl_context)
+
+            logger.info(
+                "SSL/TLS configurado para MQTT Consumer"
+            )
 
         if (
             settings.MQTT_USERNAME

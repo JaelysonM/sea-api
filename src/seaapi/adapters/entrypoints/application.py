@@ -28,6 +28,7 @@ from starlette.middleware.authentication import (
 
 logger = logging.getLogger(__name__)
 
+
 def include_router(app_):
     app_.include_router(api_router)
 
@@ -62,7 +63,7 @@ def start_application():
     container = Container()
     app_ = FastAPI(
         title=settings.APP_NAME,
-        version=settings.APP_VERSION
+        version=settings.APP_VERSION,
     )
     app_.container = container
     include_router(app_)

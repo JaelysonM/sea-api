@@ -108,7 +108,8 @@ class Settings:
     )
 
     IS_MESSAGE_WORKER = (
-        os.getenv("IS_MESSAGE_WORKER", "false").lower() == "true"
+        os.getenv("IS_MESSAGE_WORKER", "false").lower()
+        == "true"
     )
 
 
