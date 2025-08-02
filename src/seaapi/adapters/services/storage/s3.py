@@ -1,10 +1,10 @@
 import boto3
 import os
-from src.seaapi.domain.ports.services.storage import (
+from src.fansapi.domain.ports.services.storage import (
     StorageServiceInterface,
 )
-from src.seaapi.config.settings import settings
-from src.seaapi.domain.shared.file import (
+from src.fansapi.config.settings import settings
+from src.fansapi.domain.shared.file import (
     bytes_to_named_temporary_file,
 )
 
@@ -17,6 +17,7 @@ class S3StorageService(
             "s3",
             aws_access_key_id=settings.STORAGE_ACCESS_KEY,
             aws_secret_access_key=settings.STORAGE_SECRET_KEY,
+            region_name=settings.STORAGE_REGION,
         )
 
     def upload(
@@ -44,7 +45,17 @@ class S3StorageService(
     def get(
         self, path: str, expires: int = None
     ):  # pragma: no cover
-        return f"https://{settings.STORAGE_BUCKET}.s3.amazonaws.com/{path}"
+        if expires is None:
+            return f"https://{settings.STORAGE_BUCKET}.s3.amazonaws.com/{path}"
+        response = self.client.generate_presigned_url(
+            "get_object",
+            Params={
+                "Bucket": settings.STORAGE_BUCKET,
+                "Key": path,
+            },
+            ExpiresIn=expires,
+        )
+        return response
 
     def delete(self, path: str):  # pragma: no cover
         self.client.delete_object(
