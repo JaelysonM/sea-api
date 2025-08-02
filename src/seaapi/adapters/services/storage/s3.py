@@ -1,10 +1,10 @@
 import boto3
 import os
-from src.fansapi.domain.ports.services.storage import (
+from src.seaapi.domain.ports.services.storage import (
     StorageServiceInterface,
 )
-from src.fansapi.config.settings import settings
-from src.fansapi.domain.shared.file import (
+from src.seaapi.config.settings import settings
+from src.seaapi.domain.shared.file import (
     bytes_to_named_temporary_file,
 )
 
