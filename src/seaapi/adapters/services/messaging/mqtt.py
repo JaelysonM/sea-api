@@ -171,6 +171,8 @@ class MQTTConsumer(MessageConsumerInterface):
         self.client.on_disconnect = self._on_disconnect
         self.client.on_message = self._on_message
 
+        self._loop = asyncio.get_event_loop()
+
     def _on_connect(
         self, client, userdata, flags, rc, properties=None
     ):
@@ -217,14 +219,8 @@ class MQTTConsumer(MessageConsumerInterface):
 
             handler = self.handlers.get(topic)
             if handler:
-                try:
-                    loop = asyncio.get_running_loop()
-                except RuntimeError:
-                    loop = asyncio.new_event_loop()
-                    asyncio.set_event_loop(loop)
-
                 future = asyncio.run_coroutine_threadsafe(
-                    handler.handle(message), loop
+                    handler.handle(message), self._loop
                 )
                 future.add_done_callback(
                     lambda f: logger.error(
