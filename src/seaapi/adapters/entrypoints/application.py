@@ -1,5 +1,4 @@
 import sys
-from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from alembic.config import Config
@@ -28,43 +27,6 @@ from starlette.middleware.authentication import (
 )
 
 logger = logging.getLogger(__name__)
-
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    """Gerencia o ciclo de vida da aplicação"""
-    logger.info("🚀 Iniciando aplicação...")
-
-    # Startup - Inicializar EventBus/MQTT
-    try:
-        if settings.MESSAGING_ENABLED:
-            event_bus = app.container.event_bus()
-            await event_bus.start()
-            logger.info(
-                "✅ EventBus/MQTT conectado com sucesso"
-            )
-        else:
-            logger.info("⚠️  Mensageria desabilitada")
-    except Exception as e:
-        logger.error(
-            f"❌ Erro ao conectar EventBus/MQTT: {e}"
-        )
-        # Você pode escolher se quer falhar a aplicação ou continuar
-        # raise  # Descomente se quiser que a app falhe se não conectar MQTT
-
-    yield  # Aplicação roda aqui
-
-    # Shutdown - Desconectar EventBus/MQTT
-    try:
-        if settings.MESSAGING_ENABLED:
-            event_bus = app.container.event_bus()
-            await event_bus.stop()
-            logger.info("🔌 EventBus/MQTT desconectado")
-    except Exception as e:
-        logger.error(
-            f"❌ Erro ao desconectar EventBus/MQTT: {e}"
-        )
-
 
 def include_router(app_):
     app_.include_router(api_router)
@@ -100,8 +62,7 @@ def start_application():
     container = Container()
     app_ = FastAPI(
         title=settings.APP_NAME,
-        version=settings.APP_VERSION,
-        lifespan=lifespan,
+        version=settings.APP_VERSION
     )
     app_.container = container
     include_router(app_)

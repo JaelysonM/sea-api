@@ -222,6 +222,7 @@ class MQTTConsumer(MessageConsumerInterface):
                 future = asyncio.run_coroutine_threadsafe(
                     handler.handle(message), self._loop
                 )
+
                 future.add_done_callback(
                     lambda f: logger.error(
                         f"Erro no handler: {f.exception()}"

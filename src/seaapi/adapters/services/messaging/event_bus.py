@@ -94,18 +94,19 @@ class EventBus(EventBusInterface):
 
         try:
             await self.publisher.connect()
-            await self.consumer.connect()
+            if settings.IS_MESSAGE_WORKER:
+                await self.consumer.connect()
 
-            for (
-                event_type,
-                handler,
-            ) in self.handlers.items():
-                topic = self._get_topic_for_event(
-                    event_type
-                )
-                await self.consumer.subscribe(
-                    topic, handler
-                )
+                for (
+                    event_type,
+                    handler,
+                ) in self.handlers.items():
+                    topic = self._get_topic_for_event(
+                        event_type
+                    )
+                    await self.consumer.subscribe(
+                        topic, handler
+                    )
 
             self.running = True
             logger.info("Event Bus iniciado com sucesso")

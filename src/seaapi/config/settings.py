@@ -107,6 +107,10 @@ class Settings:
         os.getenv("MQTT_USE_TLS", "false").lower() == "true"
     )
 
+    IS_MESSAGE_WORKER = (
+        os.getenv("IS_MESSAGE_WORKER", "false").lower() == "true"
+    )
+
 
 settings = Settings()
 
