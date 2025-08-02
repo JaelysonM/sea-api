@@ -10,6 +10,7 @@ from fastapi import (
     Form,
     UploadFile,
     File,
+    Request,
 )
 from fastapi.security import HTTPBearer
 from src.seaapi.domain.ports.use_cases.foods import (
@@ -44,6 +45,9 @@ from src.seaapi.adapters.entrypoints.api.shared.permissions import (
 )
 from src.seaapi.adapters.entrypoints.api.shared.utils import (
     convert_upload_file_to_domain,
+)
+from src.seaapi.adapters.entrypoints.api.shared.rate_limit_decorators import (
+    strict_rate_limit,
 )
 
 
@@ -277,7 +281,9 @@ def delete_food(
     ],
 )
 @inject
+@strict_rate_limit()  # Aplicando rate limiting específico: 10 req/min
 async def calculate_nutrition(
+    request: Request,  # Adicionado para o rate limiting
     nutrition_data: NutritionCalculateInputDto,
     food_service: FoodServiceInterface = Depends(
         Provide[Container.food_service]

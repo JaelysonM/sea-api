@@ -55,6 +55,11 @@ from src.seaapi.adapters.services.nutrition import (
     OpenAINutritionService,
 )
 
+from src.seaapi.adapters.services.rate_limiting import (
+    MemoryRateLimiter,
+    RedisRateLimiter,
+)
+
 ENGINE = create_engine(config.get_database_uri())
 
 
@@ -139,6 +144,20 @@ class Container(containers.DeclarativeContainer):
     permission_service = providers.Factory(
         PermissionService, uow=permission_uow
     )
+
+    # Rate Limiter Configuration
+    def _get_rate_limiter():
+        if settings.RATE_LIMITING_BACKEND == "redis":
+            return providers.Singleton(
+                RedisRateLimiter,
+                redis_url=settings.REDIS_URL,
+                password=settings.REDIS_PASSWORD,
+                db=settings.REDIS_DB,
+            )
+        else:
+            return providers.Singleton(MemoryRateLimiter)
+
+    rate_limiter = _get_rate_limiter()
 
     mqtt_publisher = providers.Factory(MQTTPublisher)
 

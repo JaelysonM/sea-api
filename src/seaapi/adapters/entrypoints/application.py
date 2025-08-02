@@ -22,6 +22,9 @@ from src.seaapi.adapters.entrypoints.api.handlers import (
 from src.seaapi.adapters.entrypoints.api.shared.middlewares import (
     BearerTokenAuthBackend,
 )
+from src.seaapi.adapters.entrypoints.api.shared.rate_limit_middleware import (
+    RateLimitMiddleware,
+)
 from starlette.middleware.authentication import (
     AuthenticationMiddleware,
 )
@@ -41,6 +44,60 @@ def register_middleware(app_):
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    if settings.RATE_LIMITING_ENABLED:
+        rate_limiter = app_.container.rate_limiter()
+
+        custom_limits = {
+            "POST:/v1/auth/login": {
+                "max_requests": 5,
+                "window_seconds": 300,
+            },
+            "POST:/v1/auth/refresh": {
+                "max_requests": 10,
+                "window_seconds": 300,
+            },
+            "POST:/v1/foods": {
+                "max_requests": 20,
+                "window_seconds": 3600,
+            },
+            "POST:/v1/foods/calculate-nutrition": {
+                "max_requests": 50,
+                "window_seconds": 3600,
+            },
+            "PUT:/v1/foods": {
+                "max_requests": 30,
+                "window_seconds": 3600,
+            },
+            "DELETE:/v1/foods": {
+                "max_requests": 10,
+                "window_seconds": 3600,
+            },
+            "GET:/v1/foods": {
+                "max_requests": 200,
+                "window_seconds": 3600,
+            },
+            "GET:/v1/auth/me": {
+                "max_requests": 100,
+                "window_seconds": 3600,
+            },
+        }
+        exempt_endpoints = [
+            "GET:/docs",
+            "GET:/redoc",
+            "GET:/openapi.json",
+            "GET:/health",
+        ]
+
+        app_.add_middleware(
+            RateLimitMiddleware,
+            rate_limiter=rate_limiter,
+            default_max_requests=settings.RATE_LIMITING_DEFAULT_MAX_REQUESTS,
+            default_window_seconds=settings.RATE_LIMITING_DEFAULT_WINDOW_SECONDS,
+            custom_limits=custom_limits,
+            exempt_endpoints=exempt_endpoints,
+        )
+
     app_.add_middleware(
         AuthenticationMiddleware,
         backend=BearerTokenAuthBackend(),

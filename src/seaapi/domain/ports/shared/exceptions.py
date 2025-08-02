@@ -30,6 +30,24 @@ class SystemException(CustomException):
         )
 
 
+class RateLimitExceededException(CustomException):
+    def __init__(
+        self,
+        detail: str = "Limite de requisições excedido",
+        status_code: int = 429,
+        error_code: str = "rate_limit_exceeded",
+        retry_after: int = None,
+        **extra_data,
+    ):
+        super().__init__(
+            detail=detail,
+            status_code=status_code,
+            error_code=error_code,
+        )
+        self.retry_after = retry_after
+        self.extra_data = extra_data
+
+
 class NotAuthenticatedException(CustomException):
     def __init__(
         self,

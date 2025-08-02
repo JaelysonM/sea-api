@@ -115,6 +115,30 @@ class Settings:
     # OpenAI Configuration
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
+    # Rate Limiting Configuration
+    RATE_LIMITING_ENABLED = (
+        os.getenv("RATE_LIMITING_ENABLED", "true").lower()
+        == "true"
+    )
+    RATE_LIMITING_BACKEND = os.getenv(
+        "RATE_LIMITING_BACKEND", "memory"
+    )  # memory or redis
+    RATE_LIMITING_DEFAULT_MAX_REQUESTS = int(
+        os.getenv("RATE_LIMITING_DEFAULT_MAX_REQUESTS", 100)
+    )
+    RATE_LIMITING_DEFAULT_WINDOW_SECONDS = int(
+        os.getenv(
+            "RATE_LIMITING_DEFAULT_WINDOW_SECONDS", 3600
+        )
+    )
+
+    # Redis Configuration for Rate Limiting
+    REDIS_URL = os.getenv(
+        "REDIS_URL", "redis://localhost:6379"
+    )
+    REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")
+    REDIS_DB = int(os.getenv("REDIS_DB", 0))
+
 
 settings = Settings()
 

@@ -10,6 +10,7 @@ from src.seaapi.adapters.entrypoints.api.v1 import (
     user_meal,
     qrcode,
     user_food,
+    rate_limit,
 )
 
 api_router = APIRouter(prefix="/v1")
@@ -74,4 +75,10 @@ api_router.include_router(
     qrcode.router,
     prefix="/qrcode",
     tags=["QRCode Authentication"],
+)
+
+api_router.include_router(
+    rate_limit.router,
+    prefix="/rate-limit",
+    tags=["System/Rate Limiting"],
 )
