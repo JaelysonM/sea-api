@@ -170,7 +170,7 @@ def revoke_qrcode_token(
 
 
 @router.post(
-    "/plate/{serial}",
+    "/plate",
     status_code=200,
     response_model=bytes,
     dependencies=[
