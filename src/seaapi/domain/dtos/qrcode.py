@@ -23,4 +23,4 @@ class QRCodeInfoResponseDto(BaseModel):
 
 
 class QRCodePlateInputDto(BaseModel):
-    plate_id: int
+    plate_id: str
