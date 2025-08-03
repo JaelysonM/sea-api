@@ -81,6 +81,10 @@ def register_middleware(app_):
                 "max_requests": 100,
                 "window_seconds": 3600,
             },
+            "GET:/v1/auth/meals/current": {
+                "max_requests": 5,
+                "window_seconds": 60,
+            },
         }
         exempt_endpoints = [
             "GET:/docs",
