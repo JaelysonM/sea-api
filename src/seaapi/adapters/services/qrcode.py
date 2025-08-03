@@ -16,7 +16,7 @@ from src.seaapi.domain.ports.services.qrcode import (
 from src.seaapi.config.settings import root_path
 
 
-class QRCodeService(QRCodeGeneratorInterface):
+class QRCodeGeneratorService(QRCodeGeneratorInterface):
     def __init__(self):
         self.box_size = 20
         self.border = 1
@@ -54,7 +54,8 @@ class QRCodeService(QRCodeGeneratorInterface):
     def hex_to_rgb(self, h):
         h = h.lstrip("#")
         return tuple(
-            int(h[i : i + 2], 16) for i in (0, 2, 4)  # noqa: E203
+            int(h[i : i + 2], 16)  # noqa: E203
+            for i in (0, 2, 4)
         )
 
     def generate_qrcode(

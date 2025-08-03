@@ -28,7 +28,7 @@ auth_scheme = HTTPBearer()
 
 
 @router.post(
-    "/create",
+    "/fast-auth/create",
     status_code=201,
     dependencies=[
         Depends(
@@ -63,7 +63,7 @@ def create_qrcode_token(
 
 
 @router.post(
-    "/regenerate/{token_id}",
+    "/fast-auth/regenerate/{token_id}",
     dependencies=[
         Depends(
             PermissionsDependency(
@@ -100,7 +100,7 @@ def regenerate_qrcode(
 
 
 @router.post(
-    "/authenticate",
+    "/fast-auth/authenticate",
     response_model=Tokens,
 )
 @inject
@@ -114,7 +114,7 @@ def authenticate_with_qrcode(
 
 
 @router.get(
-    "/info/{token_id}",
+    "/fast-auth/info/{token_id}",
     response_model=QRCodeInfoResponseDto,
     dependencies=[
         Depends(
@@ -141,7 +141,7 @@ def get_qrcode_info(
 
 
 @router.delete(
-    "/revoke/{token_id}",
+    "/fast-auth/revoke/{token_id}",
     status_code=200,
     response_model=SuccessResponse,
     dependencies=[
@@ -166,3 +166,41 @@ def revoke_qrcode_token(
     ),
 ):
     return qrcode_service.revoke_token(token_id)
+
+
+# Create a route to generate plate QRCode
+@router.get(
+    "/plate/{serial}",
+    status_code=200,
+    response_model=bytes,
+    dependencies=[
+        Depends(
+            PermissionsDependency(
+                And(
+                    [
+                        IsAuthenticated(),
+                        IsAdministrator(),
+                    ]
+                )
+            )
+        ),
+        Depends(auth_scheme),
+    ],
+)
+@inject
+def get_plate_qrcode(
+    serial: str,
+    qrcode_service: QRCodeServiceInterface = Depends(
+        Provide[Container.qrcode_service]
+    ),
+):
+
+    image_bytes = qrcode_service.get_plate_qrcode(serial)
+    return Response(
+        content=image_bytes,
+        media_type="image/png",
+        headers={
+            "Content-Disposition": f"inline; filename=plate_{serial}.png",
+            "Cache-Control": "no-cache",
+        },
+    )

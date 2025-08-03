@@ -26,6 +26,7 @@ from src.seaapi.domain.ports.shared.exceptions import (
     UserNotFoundException,
     ExpiredTokenException,
     InvalidCredentialsException,
+    QRCodeGenerationException,
 )
 from src.seaapi.domain.ports.services.qrcode import (
     QRCodeGeneratorInterface,
@@ -33,7 +34,7 @@ from src.seaapi.domain.ports.services.qrcode import (
 from src.seaapi.config.settings import settings
 
 
-class QRCodeAuthService(QRCodeServiceInterface):
+class QRCodeService(QRCodeServiceInterface):
     def __init__(
         self,
         token_uow: TokenUnitOfWorkInterface,
@@ -58,7 +59,7 @@ class QRCodeAuthService(QRCodeServiceInterface):
             )
         )
 
-    def create_qrcode_token(
+    def _create_qrcode_token(
         self, data: QRCodeCreateInputDto
     ) -> bytes:
         user = self.user_service.get_user(
@@ -85,14 +86,19 @@ class QRCodeAuthService(QRCodeServiceInterface):
         qrcode_url = (
             f"{data.frontend_url}?token={token_value}"
         )
-        qrcode_data = self.qrcode_generator.generate_qrcode(
-            data=qrcode_url,
-            text=f"{user.first_name} {user.last_name} (ID: {user.id})",
-        )
+        try:
+            qrcode_data = self.qrcode_generator.generate_qrcode(
+                data=qrcode_url,
+                text=f"{user.first_name} {user.last_name} (ID: {user.id})",
+            )
+        except Exception as e:
+            raise QRCodeGenerationException(
+                f"Erro ao gerar QRCode: {str(e)}"
+            )
 
         return qrcode_data
 
-    def regenerate_qrcode(
+    def _regenerate_qrcode(
         self, token_id: int, frontend_url: str
     ) -> bytes:
         with self.token_uow:
@@ -122,13 +128,13 @@ class QRCodeAuthService(QRCodeServiceInterface):
                     text=f"{user.first_name} {user.last_name} (ID: {user.id})",
                 )
             except Exception as e:
-                raise InvalidCredentialsException(
+                raise QRCodeGenerationException(
                     f"Erro ao gerar QRCode: {str(e)}"
                 )
 
             return qrcode_data
 
-    def authenticate_with_qrcode(
+    def _authenticate_with_qrcode(
         self, data: QRCodeTokenDto
     ) -> Tokens:
         with self.token_uow:
@@ -170,7 +176,7 @@ class QRCodeAuthService(QRCodeServiceInterface):
 
             return tokens
 
-    def get_qrcode_info(
+    def _get_qrcode_info(
         self, token_id: int
     ) -> QRCodeInfoResponseDto:
         with self.token_uow:
@@ -191,7 +197,7 @@ class QRCodeAuthService(QRCodeServiceInterface):
                 < datetime.now(),
             )
 
-    def revoke_token(
+    def _revoke_token(
         self, token_id: int
     ) -> SuccessResponse:
         with self.token_uow:
@@ -209,3 +215,25 @@ class QRCodeAuthService(QRCodeServiceInterface):
                 message="Token QRCode revogado com sucesso",
                 code="qrcode_revoked",
             )
+
+    def _get_plate_qrcode(self, serial: str) -> bytes:
+        if not serial or len(serial) != 11:
+            raise QRCodeGenerationException(
+                "Serial inválido"
+            )
+        if not all(c.isalnum() or c == '-' for c in serial):
+            raise QRCodeGenerationException(
+                "Serial inválido"
+            )
+        try:
+            qrcode_data = (
+                self.qrcode_generator.generate_qrcode(
+                    data=serial,
+                    text=f"{serial}",
+                )
+            )
+        except Exception as e:
+            raise QRCodeGenerationException(
+                f"Erro ao gerar QRCode do prato: {str(e)}"
+            )
+        return qrcode_data

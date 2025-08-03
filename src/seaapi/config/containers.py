@@ -20,9 +20,7 @@ from src.seaapi.adapters.use_cases import (
     MealService,
     ScaleService,
     FoodEventPublisher,
-)
-from src.seaapi.adapters.use_cases.qrcode import (
-    QRCodeAuthService,
+    QRCodeService,
 )
 from src.seaapi.config.settings import settings
 
@@ -42,7 +40,7 @@ from src.seaapi.adapters.services.pdf.jinja import (
 )
 
 from src.seaapi.adapters.services.qrcode import (
-    QRCodeService,
+    QRCodeGeneratorService,
 )
 
 
@@ -121,7 +119,7 @@ class Container(containers.DeclarativeContainer):
     )
 
     qrcode_generator = providers.Factory(
-        QRCodeService,
+        QRCodeGeneratorService,
     )
 
     storage_service = providers.Singleton(
@@ -213,7 +211,7 @@ class Container(containers.DeclarativeContainer):
     )
 
     qrcode_service = providers.Factory(
-        QRCodeAuthService,
+        QRCodeService,
         token_uow=token_uow,
         token_service=token_service,
         user_service=user_service,

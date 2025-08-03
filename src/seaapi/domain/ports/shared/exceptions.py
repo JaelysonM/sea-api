@@ -373,3 +373,17 @@ class NoActiveMealException(CustomException):
             status_code=status_code,
             error_code=error_code,
         )
+
+
+class QRCodeGenerationException(CustomException):
+    def __init__(
+        self,
+        detail: str = "Erro ao gerar QRCode",
+        status_code: int = 500,
+        error_code: str = "qrcode_generation_error",
+    ):
+        super().__init__(
+            detail=detail,
+            status_code=status_code,
+            error_code=error_code,
+        )
