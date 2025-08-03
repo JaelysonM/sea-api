@@ -7,7 +7,7 @@ from src.seaapi.domain.dtos.nutrition import (
 
 class NutritionServiceInterface(abc.ABC):
     @abc.abstractmethod
-    async def calculate_nutrition(
+    def calculate_nutrition(
         self, food_data: NutritionCalculateInputDto
     ) -> NutritionCalculateOutputDto:
         raise NotImplementedError

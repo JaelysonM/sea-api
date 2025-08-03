@@ -62,8 +62,8 @@ def register_middleware(app_):
                 "window_seconds": 3600,
             },
             "POST:/v1/foods/calculate-nutrition": {
-                "max_requests": 50,
-                "window_seconds": 3600,
+                "max_requests": 5,
+                "window_seconds": 120,
             },
             "PUT:/v1/foods": {
                 "max_requests": 30,

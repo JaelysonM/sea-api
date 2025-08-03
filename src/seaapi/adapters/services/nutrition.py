@@ -1,6 +1,6 @@
 import json
 import logging
-import aiohttp
+import requests
 from src.seaapi.domain.ports.services.nutrition import (
     NutritionServiceInterface,
 )
@@ -55,7 +55,7 @@ Exemplos:
 Seu foco é praticidade e aproximação realista, não perfeição.
 """
 
-    async def calculate_nutrition(
+    def calculate_nutrition(
         self, food_data: NutritionCalculateInputDto
     ) -> NutritionCalculateOutputDto:
         name = (food_data.food_name or "").strip()
@@ -80,48 +80,45 @@ Seu foco é praticidade e aproximação realista, não perfeição.
         }
 
         try:
-            async with aiohttp.ClientSession() as session:
-                async with session.post(
-                    self.api_url,
-                    headers=headers,
-                    json=payload,
-                ) as response:
-                    if not response.ok:
-                        logger.error(
-                            f"OpenAI API error: {response.status}"
-                        )
-                        return self._default_response()
+            response = requests.post(
+                self.api_url,
+                headers=headers,
+                json=payload,
+                timeout=30,
+            )
 
-                    result = await response.json()
-                    content = (
-                        result.get("choices", [{}])[0]
-                        .get("message", {})
-                        .get("content", "")
+            if not response.ok:
+                logger.error(
+                    f"OpenAI API error: {response.status_code}"
+                )
+                return self._default_response()
+
+            result = response.json()
+            content = (
+                result.get("choices", [{}])[0]
+                .get("message", {})
+                .get("content", "")
+            )
+
+            try:
+                data = json.loads(content)
+                if not self._is_valid_result(data):
+                    raise ValueError(
+                        "Resultado mal formatado"
                     )
 
-                    try:
-                        data = json.loads(content)
-                        if not self._is_valid_result(data):
-                            raise ValueError(
-                                "Resultado mal formatado"
-                            )
-
-                        return NutritionCalculateOutputDto(
-                            protein_g=float(
-                                data["protein_g"]
-                            ),
-                            carbohydrates_total_g=float(
-                                data["carbohydrates_g"]
-                            ),
-                            fat_total_g=float(
-                                data["fat_g"]
-                            ),
-                        )
-                    except Exception as parse_err:
-                        logger.warning(
-                            f"Erro ao interpretar resposta do modelo: {parse_err}"
-                        )
-                        return self._default_response()
+                return NutritionCalculateOutputDto(
+                    protein_g=float(data["protein_g"]),
+                    carbohydrates_total_g=float(
+                        data["carbohydrates_g"]
+                    ),
+                    fat_total_g=float(data["fat_g"]),
+                )
+            except Exception as parse_err:
+                logger.warning(
+                    f"Erro ao interpretar resposta do modelo: {parse_err}"
+                )
+                return self._default_response()
 
         except Exception as e:
             logger.error(

@@ -340,9 +340,16 @@ class FoodService(FoodServiceInterface):
                 code="food_removed",
             )
 
-    async def _calculate_nutrition(
+    def _calculate_nutrition(
         self, food_data: NutritionCalculateInputDto
     ) -> NutritionCalculateOutputDto:
-        return await self.nutrition_service.calculate_nutrition(
-            food_data
+        """
+        Calculates nutrition using nutrition service.
+        """
+        nutrition_data = (
+            self.nutrition_service.calculate_nutrition(
+                food_data
+            )
         )
+
+        return nutrition_data

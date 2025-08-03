@@ -51,10 +51,10 @@ class FoodServiceInterface(abc.ABC):
     ) -> SuccessResponse:
         return self._delete_food(id_)
 
-    async def calculate_nutrition(
+    def calculate_nutrition(
         self, food_data: NutritionCalculateInputDto
     ) -> NutritionCalculateOutputDto:
-        return await self._calculate_nutrition(food_data)
+        return self._calculate_nutrition(food_data)
 
     @abc.abstractmethod
     def _create(
@@ -95,7 +95,7 @@ class FoodServiceInterface(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-    async def _calculate_nutrition(
+    def _calculate_nutrition(
         self, food_data: NutritionCalculateInputDto
     ) -> NutritionCalculateOutputDto:
         raise NotImplementedError
