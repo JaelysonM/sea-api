@@ -13,6 +13,7 @@ from src.seaapi.domain.dtos.qrcode import (
     QRCodeTokenDto,
     QRCodeRegenerateInputDto,
     QRCodeInfoResponseDto,
+    QRCodePlateInputDto
 )
 from src.seaapi.domain.dtos.mics import SuccessResponse
 from src.seaapi.domain.dtos.tokens import Tokens
@@ -168,8 +169,7 @@ def revoke_qrcode_token(
     return qrcode_service.revoke_token(token_id)
 
 
-# Create a route to generate plate QRCode
-@router.get(
+@router.post(
     "/plate/{serial}",
     status_code=200,
     response_model=bytes,
@@ -189,11 +189,12 @@ def revoke_qrcode_token(
 )
 @inject
 def get_plate_qrcode(
-    serial: str,
+    plate_qrcode: QRCodePlateInputDto,
     qrcode_service: QRCodeServiceInterface = Depends(
         Provide[Container.qrcode_service]
     ),
 ):
+    serial = plate_qrcode.plate_id
 
     image_bytes = qrcode_service.get_plate_qrcode(serial)
     return Response(

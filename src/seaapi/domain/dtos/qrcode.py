@@ -20,3 +20,7 @@ class QRCodeInfoResponseDto(BaseModel):
     expires_at: str
     qr_generated_at: str
     is_expired: bool
+
+
+class QRCodePlateInputDto(BaseModel):
+    plate_id: int

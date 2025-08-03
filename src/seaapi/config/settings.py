@@ -15,7 +15,7 @@ load_dotenv(dotenv_path=env_path)
 
 class Settings:
     APP_NAME: str = "sea-api"
-    APP_VERSION: str = "0.1.1"
+    APP_VERSION: str = "0.1.2"
     MARKETING_NAME: str = "Sea API"
     COMPANY_NAME: str = "Make a Vision"
 
