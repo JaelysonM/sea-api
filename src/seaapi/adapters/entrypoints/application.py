@@ -82,7 +82,7 @@ def register_middleware(app_):
                 "window_seconds": 3600,
             },
             "GET:/v1/auth/meals/current": {
-                "max_requests": 5,
+                "max_requests": 100,
                 "window_seconds": 60,
             },
         }
