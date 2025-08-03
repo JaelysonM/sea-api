@@ -146,18 +146,16 @@ class Container(containers.DeclarativeContainer):
     )
 
     # Rate Limiter Configuration
-    def _get_rate_limiter():
-        if settings.RATE_LIMITING_BACKEND == "redis":
-            return providers.Singleton(
-                RedisRateLimiter,
-                redis_url=settings.REDIS_URL,
-                password=settings.REDIS_PASSWORD,
-                db=settings.REDIS_DB,
-            )
-        else:
-            return providers.Singleton(MemoryRateLimiter)
-
-    rate_limiter = _get_rate_limiter()
+    rate_limiter = (
+        providers.Singleton(
+            RedisRateLimiter,
+            redis_url=settings.REDIS_URL,
+            password=settings.REDIS_PASSWORD,
+            db=settings.REDIS_DB,
+        )
+        if settings.RATE_LIMITING_BACKEND == "redis"
+        else providers.Singleton(MemoryRateLimiter)
+    )
 
     mqtt_publisher = providers.Factory(MQTTPublisher)
 

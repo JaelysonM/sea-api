@@ -8,6 +8,8 @@ env_path = (
     Path(__file__).parent.parent.parent.parent / ".env"
 )
 
+root_path = Path(__file__).parent.parent.parent.parent
+
 load_dotenv(dotenv_path=env_path)
 
 

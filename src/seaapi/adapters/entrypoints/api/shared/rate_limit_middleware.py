@@ -190,7 +190,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             return response
 
         except Exception as e:
-            print(e)
+
             print(f"Rate limiter error: {e}")
             response = await call_next(request)
             response.headers[

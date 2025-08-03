@@ -86,7 +86,8 @@ class QRCodeAuthService(QRCodeServiceInterface):
             f"{data.frontend_url}?token={token_value}"
         )
         qrcode_data = self.qrcode_generator.generate_qrcode(
-            qrcode_url
+            data=qrcode_url,
+            text=f"{user.first_name} {user.last_name} (ID: {user.id})",
         )
 
         return qrcode_data
@@ -110,11 +111,20 @@ class QRCodeAuthService(QRCodeServiceInterface):
             qrcode_url = (
                 f"{frontend_url}?token={token.token}"
             )
-            qrcode_data = (
-                self.qrcode_generator.generate_qrcode(
-                    qrcode_url
-                )
+
+            user = self.user_service.get_user(
+                token.reference, entity=True
             )
+
+            try:
+                qrcode_data = self.qrcode_generator.generate_qrcode(
+                    qrcode_url,
+                    text=f"{user.first_name} {user.last_name} (ID: {user.id})",
+                )
+            except Exception as e:
+                raise InvalidCredentialsException(
+                    f"Erro ao gerar QRCode: {str(e)}"
+                )
 
             return qrcode_data
 

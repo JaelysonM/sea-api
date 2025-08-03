@@ -100,7 +100,6 @@ class DefaultAlchemyRepository(
             for join in getattr(
                 self.entity.Meta, "joins", []
             ):
-                print(join)
                 query = query.outerjoin(join)
 
         if hasattr(self.entity.Meta, "no_load"):
