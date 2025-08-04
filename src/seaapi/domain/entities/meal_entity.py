@@ -153,6 +153,7 @@ class MealEntity(BaseEntity):
             ):
                 existing_measurement.weight = (
                     food_measurement.weight
+                    + existing_measurement.weight
                 )
                 create = False
 
