@@ -8,8 +8,10 @@ from sqlalchemy import (
     DateTime,
     Boolean,
     func,
+    select,
+    case,
 )
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, column_property
 from src.seaapi.adapters.db.models.base import (
     TablesRegistration,
 )
@@ -151,8 +153,22 @@ class FoodsTables(TablesRegistration):
         )
 
     def register(self):
+
+        count_subquery = (
+            select(func.count(self.food.c.id))
+            .where(self.food.c.scale_id == self.scale.c.id)
+            .correlate(self.scale)
+        ).scalar_subquery()
+
+        is_attached_property = column_property(
+            case((count_subquery > 0, True), else_=False)
+        )
         self.mapper_registry.map_imperatively(
-            ScaleEntity, self.scale
+            ScaleEntity,
+            self.scale,
+            properties={
+                "is_attached": is_attached_property
+            },
         )
 
         self.mapper_registry.map_imperatively(

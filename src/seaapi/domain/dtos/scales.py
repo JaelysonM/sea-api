@@ -22,6 +22,7 @@ class ScaleOutputDto(BaseModel):
     id: int
     name: str
     serial: str
+    is_attached: bool
 
     class Config:
         orm_mode = True
@@ -34,3 +35,4 @@ class ScalePaginationData(PaginationData):
 class ScalePaginationParams(PaginationParams):
     name: Optional[str]
     serial: Optional[str]
+    is_attached: Optional[bool]

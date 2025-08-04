@@ -217,11 +217,7 @@ class QRCodeService(QRCodeServiceInterface):
             )
 
     def _get_plate_qrcode(self, serial: str) -> bytes:
-        if not serial or len(serial) != 11:
-            raise QRCodeGenerationException(
-                "Serial inválido"
-            )
-        if not all(c.isalnum() or c == '-' for c in serial):
+        if not all(c.isalnum() or c == "-" for c in serial):
             raise QRCodeGenerationException(
                 "Serial inválido"
             )

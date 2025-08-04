@@ -13,7 +13,7 @@ from src.seaapi.domain.dtos.qrcode import (
     QRCodeTokenDto,
     QRCodeRegenerateInputDto,
     QRCodeInfoResponseDto,
-    QRCodePlateInputDto
+    QRCodePlateInputDto,
 )
 from src.seaapi.domain.dtos.mics import SuccessResponse
 from src.seaapi.domain.dtos.tokens import Tokens
