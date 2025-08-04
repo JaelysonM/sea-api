@@ -23,7 +23,7 @@ class QRCodeGeneratorService(QRCodeGeneratorInterface):
         self.fill_color = "#3D444A"
         self.back_color = "#FFFFFF"
         self.text_color = "#3A4A5C"
-        self.font_size = 14
+        self.font_size = 20
         self.logo_path = os.path.join(
             root_path, "assets", "images", "logo.png"
         )
